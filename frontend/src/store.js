@@ -6,7 +6,7 @@ export const selectedLinkAtom = atom(null);
 export const selectedLinkDescriptionAtom = atom("");
 
 export const isEmailModalVisibleAtom = atom(false);
-export const emailAtom = atom("");
+export const emailAtom = atom("tomtahk27@gmail.com");
 
 export const isProjectModalVisibleAtom = atom(false);
 export const chosenProjectDataAtom = atom({

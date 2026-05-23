@@ -2,7 +2,7 @@ import makeSection from "./components/Section";
 import makeKaplayCtx from "./kaplayCtx";
 import { PALETTE } from "./constants";
 import makePlayer from "./entities/Player";
-import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom } from "./store";
+import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, isEmailModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom } from "./store";
 
 export default async function initGame() {
     const k = makeKaplayCtx()
@@ -262,14 +262,12 @@ export default async function initGame() {
 
     gmailCircle.onCollide("player", () => {
         console.log("Entered Gmail circle!")
-        store.set(selectedLinkAtom, "mailto:tomtahk27@gmail.com")
-        store.set(selectedLinkDescriptionAtom, "Send me an email to get in touch!")
-        store.set(isSocialModalVisibleAtom, true)
+        store.set(isEmailModalVisibleAtom, true)
     })
 
     gmailCircle.onCollideEnd("player", () => {
         console.log("Exited Gmail circle!")
-        store.set(isSocialModalVisibleAtom, false)
+        store.set(isEmailModalVisibleAtom, false)
     })
 
 

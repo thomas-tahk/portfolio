@@ -33,7 +33,7 @@ export default function EmailModal() {
                     <h1>Copy my email to your clipboard?</h1>
                     <span>{email}</span>
                     <p>{onCopyMessage}</p>
-                    <div className-="modal-btn-container">
+                    <div className="modal-btn-container">
                         {buttons.map((button) => (
                             <button key={button.id} className="modal-btn" onClick={button.handler}>
                                 {button.name}
