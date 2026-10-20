@@ -73,7 +73,8 @@ html {
     border-style: solid;
     border-radius: 5px;
     padding: 20px;
-    max-width: 500px;
+    max-width: min(500px, 92vw);
+    max-height: 90vh;
     overflow: auto;
 }
 

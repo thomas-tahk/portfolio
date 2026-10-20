@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { isSkillsModalVisibleAtom, skillsDataAtom } from "../store";
+import { isSkillsModalVisibleAtom, skillsDataAtom, dismissOnBackdrop, closeAllModals } from "../store";
 
 export default function SkillsModal() {
   const skillsData = useAtomValue(skillsDataAtom);
@@ -7,10 +7,10 @@ export default function SkillsModal() {
 
   return (
     isVisible && (
-      <div className="modal skills-modal">
+      <div className="modal skills-modal" onClick={dismissOnBackdrop}>
         <div className="modal-content">
           <h1>{skillsData.title}</h1>
-          <p className="skills-interaction-hint">Step off this section to start playing around with my tech stack!</p>
+          <p className="skills-interaction-hint">Close this and step off the section to start playing around with my tech stack!</p>
           <div className="skills-content">
             {skillsData.categories.map((category, index) => (
               <div key={index} className="skills-category">
@@ -24,6 +24,11 @@ export default function SkillsModal() {
                 </div>
               </div>
             ))}
+          </div>
+          <div className="modal-btn-container">
+            <button className="modal-btn" onClick={closeAllModals}>
+              Close
+            </button>
           </div>
         </div>
       </div>

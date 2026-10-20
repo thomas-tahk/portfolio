@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { closeAllModals } from "./store";
 import ControlsMessage from "./reactComponents/ControlsMessage";
 import AboutModal from "./reactComponents/AboutModal";
 import EmailModal from "./reactComponents/EmailModal";
@@ -7,6 +9,12 @@ import SkillsModal from "./reactComponents/SkillsModal";
 import ExperienceModal from "./reactComponents/ExperienceModal";
 
 export default function ReactUI() {
+    useEffect(() => {
+        const onKeyDown = (event) => event.key === "Escape" && closeAllModals()
+        document.addEventListener("keydown", onKeyDown)
+        return () => document.removeEventListener("keydown", onKeyDown)
+    }, [])
+
     return (
         <>
             <ControlsMessage />
