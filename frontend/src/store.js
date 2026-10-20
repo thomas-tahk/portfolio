@@ -55,7 +55,7 @@ export const isAboutModalVisibleAtom = atom(false);
 export const aboutDataAtom = atom({
     name: "Thomas Tahk",
     description: "Hi — I'm Thomas. By day I keep ~80,000 students and staff online as a service desk technician for Albuquerque Public Schools; by night I build full-stack web apps and the occasional game. Background in localization and logistics, microbiology degree from UC Berkeley, bilingual in English and Korean, and yes — this whole portfolio is a game on purpose.",
-    profilePic: "/headshot.jpg"
+    profilePic: `${import.meta.env.BASE_URL}headshot.jpg`
 })
 
 export const isSkillsModalVisibleAtom = atom(false);
