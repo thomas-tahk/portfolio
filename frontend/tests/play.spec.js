@@ -16,3 +16,17 @@ test('/play/ has the game canvas and no failed asset requests', async ({ page })
 
   expect(failed, 'failed requests').toEqual([])
 })
+
+test('/play/ arrow keys move the player', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.goto(sitePath('/play/') + '?test')
+  await page.waitForFunction(() => window.__player)
+  const start = await page.evaluate(() => ({ x: window.__player.pos.x, y: window.__player.pos.y }))
+
+  await page.keyboard.down('ArrowRight')
+  await page.waitForTimeout(500)
+  await page.keyboard.up('ArrowRight')
+
+  const end = await page.evaluate(() => ({ x: window.__player.pos.x, y: window.__player.pos.y }))
+  expect(end.x, 'player x after holding ArrowRight').toBeGreaterThan(start.x)
+})
