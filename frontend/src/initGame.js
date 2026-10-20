@@ -398,6 +398,8 @@ export default async function initGame() {
     }
 
     // create player object nudged up a bit more for final positioning
-    makePlayer(k, k.vec2(k.center().x, k.center().y), 700)
+    const player = makePlayer(k, k.vec2(k.center().x, k.center().y), 700)
+    // test hook: lets Playwright read the player (prod build, so gated on the URL, not build mode)
+    if (new URLSearchParams(window.location.search).has("test")) window.__player = player
 
 }
