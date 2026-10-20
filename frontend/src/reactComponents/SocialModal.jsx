@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
-import { isSocialModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom } from "../store";
+import { isSocialModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom, dismissOnBackdrop } from "../store";
 
 export default function SocialModal() { 
     const [isVisible, setIsVisible] = useAtom(isSocialModalVisibleAtom)
@@ -24,7 +24,7 @@ export default function SocialModal() {
     ]
 
     return isVisible && (
-        <div className="modal">
+        <div className="modal" onClick={dismissOnBackdrop}>
             <div className="modal-content">
                 <h1>Do you want to open this link?</h1>
                 <span>{selectedLink}</span>

@@ -45,12 +45,33 @@ export const cameraZoomValueAtom = atom({value : 1})
 
 export const store = createStore()
 
+const modalAtoms = [
+    isSocialModalVisibleAtom,
+    isEmailModalVisibleAtom,
+    isProjectModalVisibleAtom,
+    isAboutModalVisibleAtom,
+    isSkillsModalVisibleAtom,
+    isExperienceModalVisibleAtom,
+]
+
+export const isAnyModalOpen = () => modalAtoms.some((modalAtom) => store.get(modalAtom))
+
+export const closeAllModals = () => modalAtoms.forEach((modalAtom) => store.set(modalAtom, false))
+
+// Tap/click on the dimmed backdrop (not the modal box) dismisses.
+export const dismissOnBackdrop = (event) => {
+    if (event.target === event.currentTarget) closeAllModals()
+}
+
 // Test hook: lets Playwright open modals without steering the avatar into them.
-window.__openModal = (atomName, open = true) => {
-    const atoms = {
-        projects: isProjectModalVisibleAtom,
-        about: isAboutModalVisibleAtom,
-        experience: isExperienceModalVisibleAtom,
+// Gated on the URL (prod build), like window.__player.
+if (new URLSearchParams(window.location.search).has("test")) {
+    window.__openModal = (atomName, open = true) => {
+        const atoms = {
+            projects: isProjectModalVisibleAtom,
+            about: isAboutModalVisibleAtom,
+            experience: isExperienceModalVisibleAtom,
+        }
+        store.set(atoms[atomName], open)
     }
-    store.set(atoms[atomName], open)
 }

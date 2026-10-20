@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { isAboutModalVisibleAtom, aboutDataAtom } from "../store";
+import { isAboutModalVisibleAtom, aboutDataAtom, dismissOnBackdrop, closeAllModals } from "../store";
 
 export default function AboutModal() {
   const aboutData = useAtomValue(aboutDataAtom);
@@ -7,7 +7,7 @@ export default function AboutModal() {
 
   return (
     isVisible && (
-      <div className="modal about-modal">
+      <div className="modal about-modal" onClick={dismissOnBackdrop}>
         <div className="modal-content">
           <div className="about-content">
             <div className="about-text">
@@ -21,6 +21,11 @@ export default function AboutModal() {
                 alt={`${aboutData.name} headshot`}
               />
             </div>
+          </div>
+          <div className="modal-btn-container">
+            <button className="modal-btn" onClick={closeAllModals}>
+              Close
+            </button>
           </div>
         </div>
       </div>

@@ -39,7 +39,7 @@ test('content.json has every required field', () => {
 })
 
 test('game modals show content.json text and no hidden project', async ({ page }) => {
-  await page.goto(sitePath('/play/'))
+  await page.goto(sitePath('/play/') + '?test')
   await page.waitForFunction(() => typeof window.__openModal === 'function')
 
   await page.evaluate(() => window.__openModal('projects'))

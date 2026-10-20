@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { isExperienceModalVisibleAtom, experienceDataAtom } from "../store";
+import { isExperienceModalVisibleAtom, experienceDataAtom, dismissOnBackdrop, closeAllModals } from "../store";
 
 export default function ExperienceModal() {
   const experienceData = useAtomValue(experienceDataAtom);
@@ -7,7 +7,7 @@ export default function ExperienceModal() {
 
   return (
     isVisible && (
-      <div className="modal experience-modal">
+      <div className="modal experience-modal" onClick={dismissOnBackdrop}>
         <div className="modal-content">
           <h1>{experienceData.title}</h1>
           <div className="experience-content">
@@ -19,6 +19,11 @@ export default function ExperienceModal() {
                 <p className="experience-description">{exp.description}</p>
               </div>
             ))}
+          </div>
+          <div className="modal-btn-container">
+            <button className="modal-btn" onClick={closeAllModals}>
+              Close
+            </button>
           </div>
         </div>
       </div>

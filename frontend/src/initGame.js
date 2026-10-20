@@ -248,7 +248,6 @@ export default async function initGame() {
 
     githubCircle.onCollideEnd("player", () => {
         console.log("Exited GitHub circle!")
-        store.set(isSocialModalVisibleAtom, false)
     })
 
     linkedinCircle.onCollide("player", () => {
@@ -260,7 +259,6 @@ export default async function initGame() {
 
     linkedinCircle.onCollideEnd("player", () => {
         console.log("Exited LinkedIn circle!")
-        store.set(isSocialModalVisibleAtom, false)
     })
 
     gmailCircle.onCollide("player", () => {
@@ -270,7 +268,6 @@ export default async function initGame() {
 
     gmailCircle.onCollideEnd("player", () => {
         console.log("Exited Gmail circle!")
-        store.set(isEmailModalVisibleAtom, false)
     })
 
 
@@ -285,7 +282,6 @@ export default async function initGame() {
         },
         (section) => {
             console.log("Exited About section!")
-            store.set(isAboutModalVisibleAtom, false)
         }
     )
 
@@ -303,7 +299,6 @@ export default async function initGame() {
         },
         (section) => {
             console.log("Exited Skills section!")
-            store.set(isSkillsModalVisibleAtom, false)
             // Spawn logos when exiting (first time or reset)
             spawnTechLogos()
         }
@@ -319,7 +314,6 @@ export default async function initGame() {
         },
         (section) => {
             console.log("Exited Experience section!")
-            store.set(isExperienceModalVisibleAtom, false)
         }
     )
 
@@ -333,7 +327,6 @@ export default async function initGame() {
         },
         (section) => {
             console.log("Exited Projects section!")
-            store.set(isProjectModalVisibleAtom, false)
         }
     )
 
