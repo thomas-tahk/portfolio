@@ -2,6 +2,7 @@ import makeSection from "./components/Section";
 import makeKaplayCtx from "./kaplayCtx";
 import { PALETTE } from "./constants";
 import makePlayer from "./entities/Player";
+import content from "./content.json";
 import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, isEmailModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom } from "./store";
 
 const BASE = import.meta.env.BASE_URL
@@ -240,7 +241,7 @@ export default async function initGame() {
     // Add collision detection for social circles
     githubCircle.onCollide("player", () => {
         console.log("Entered GitHub circle!")
-        store.set(selectedLinkAtom, "https://github.com/thomas-tahk")
+        store.set(selectedLinkAtom, content.contact.github)
         store.set(selectedLinkDescriptionAtom, "Check out my GitHub profile to see my code and projects!")
         store.set(isSocialModalVisibleAtom, true)
     })
@@ -252,7 +253,7 @@ export default async function initGame() {
 
     linkedinCircle.onCollide("player", () => {
         console.log("Entered LinkedIn circle!")
-        store.set(selectedLinkAtom, "https://linkedin.com/in/thomas-tahk-dev/")
+        store.set(selectedLinkAtom, content.contact.linkedin)
         store.set(selectedLinkDescriptionAtom, "Connect with me on LinkedIn for professional networking!")
         store.set(isSocialModalVisibleAtom, true)
     })
