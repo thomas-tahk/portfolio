@@ -4,10 +4,12 @@ import { PALETTE } from "./constants";
 import makePlayer from "./entities/Player";
 import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, isEmailModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom } from "./store";
 
+const BASE = import.meta.env.BASE_URL
+
 export default async function initGame() {
     const k = makeKaplayCtx()
     // player sprite and designating which frames are for which animations
-    k.loadSprite("player", "./sprites/player.png", {
+    k.loadSprite("player", `${BASE}sprites/player.png`, {
         sliceX: 4, // number of frames per row
         sliceY: 8, // number of frames per column
         anims: {
@@ -31,27 +33,27 @@ export default async function initGame() {
         }
     })
     // loading various fonts and sprites to be used in the project
-    k.loadFont("ibm-regular", "./fonts/IBMPlexSans-Regular.ttf");
-    k.loadFont("ibm-bold", "./fonts/IBMPlexSans-Bold.ttf");
-    k.loadSprite("github-logo", "./logos/github-logo.png");
-    k.loadSprite("linkedin-logo", "./logos/linkedin-logo.png");
+    k.loadFont("ibm-regular", `${BASE}fonts/IBMPlexSans-Regular.ttf`);
+    k.loadFont("ibm-bold", `${BASE}fonts/IBMPlexSans-Bold.ttf`);
+    k.loadSprite("github-logo", `${BASE}logos/github-logo.png`);
+    k.loadSprite("linkedin-logo", `${BASE}logos/linkedin-logo.png`);
     // k.loadSprite("youtube-logo", "/logos/youtube-logo.png");
     // k.loadSprite("x-logo", "/logos/x-logo.png");
     // k.loadSprite("substack-logo", "/logos/substack-logo.png");
-    k.loadSprite("javascript-logo", "./logos/js-logo.png");
-    k.loadSprite("typescript-logo", "./logos/ts-logo.png");
-    k.loadSprite("react-logo", "./logos/react-logo.png");
-    k.loadSprite("nextjs-logo", "./logos/nextjs-logo.png");
-    k.loadSprite("postgres-logo", "./logos/postgres-logo.png");
-    k.loadSprite("html-logo", "./logos/html-logo.png");
-    k.loadSprite("css-logo", "./logos/css-logo.png");
-    k.loadSprite("tailwind-logo", "./logos/tailwind-logo.png");
-    k.loadSprite("python-logo", "./logos/python-logo.png");
+    k.loadSprite("javascript-logo", `${BASE}logos/js-logo.png`);
+    k.loadSprite("typescript-logo", `${BASE}logos/ts-logo.png`);
+    k.loadSprite("react-logo", `${BASE}logos/react-logo.png`);
+    k.loadSprite("nextjs-logo", `${BASE}logos/nextjs-logo.png`);
+    k.loadSprite("postgres-logo", `${BASE}logos/postgres-logo.png`);
+    k.loadSprite("html-logo", `${BASE}logos/html-logo.png`);
+    k.loadSprite("css-logo", `${BASE}logos/css-logo.png`);
+    k.loadSprite("tailwind-logo", `${BASE}logos/tailwind-logo.png`);
+    k.loadSprite("python-logo", `${BASE}logos/python-logo.png`);
     // k.loadSprite("email-logo", "/logos/email-logo.png");
     // a shader is a program that runs on gpu that changes color of pixel on screen
     // kinda like a printing press for computer screens
     // we're using a fragment shader program written in glsl specific to kaplay
-    k.loadShaderURL("tiledPattern", null, "./shaders/tiledPattern.frag");
+    k.loadShaderURL("tiledPattern", null, `${BASE}shaders/tiledPattern.frag`);
     
     // player character scaling - adjusted for better overview
     if (k.width() < 1000) {
@@ -114,7 +116,7 @@ export default async function initGame() {
     ])
 
     // Load Gmail logo sprite
-    k.loadSprite("gmail-logo", "./logos/gmail-logo.svg");
+    k.loadSprite("gmail-logo", `${BASE}logos/gmail-logo.svg`);
 
     // GitHub Logo - spaced down from intro text
     const githubLogo = k.add([
