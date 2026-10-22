@@ -1,10 +1,10 @@
-# Simple workflow for deploying static content to GitHub Pages
+# Deploys main at /portfolio/ and the newest m* milestone branch at /portfolio/preview/
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
+  # Runs on pushes to main or any milestone branch (m1-foundation, m2-..., ...)
   push:
-    branches: ['main']
+    branches: ['main', 'm*']
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -21,36 +21,79 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Single deploy job since we're just deploying
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (full history, to find the newest milestone branch)
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          path: main
+      - name: Find newest m* branch
+        id: preview
+        working-directory: ./main
+        run: |
+          branch=$(git for-each-ref --sort=-committerdate --format='%(refname:strip=3)' 'refs/remotes/origin/m*' | head -n1)
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "Preview branch: ${branch:-none}"
+      - name: Checkout preview branch
+        if: steps.preview.outputs.branch != ''
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.preview.outputs.branch }}
+          path: preview
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: './frontend/package-lock.json'
-      - name: Install dependencies
-        run: npm ci
-        working-directory: ./frontend
-      - name: Build
-        run: npm run build
-        working-directory: ./frontend
-        env:
-          BASE_PATH: /portfolio/
+          cache-dependency-path: |
+            ./main/frontend/package-lock.json
+      - name: Build main at /portfolio/
+        run: npm ci && BASE_PATH=/portfolio/ npm run build
+        working-directory: ./main/frontend
+      - name: Build preview at /portfolio/preview/
+        if: steps.preview.outputs.branch != ''
+        run: npm ci && BASE_PATH=/portfolio/preview/ npm run build
+        working-directory: ./preview/frontend
+      - name: Combine into one artifact
+        run: |
+          mkdir -p site
+          cp -R main/frontend/dist/. site/
+          if [ -d preview/frontend/dist ]; then
+            mkdir -p site/preview
+            cp -R preview/frontend/dist/. site/preview/
+          fi
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload dist repository
-          path: './frontend/dist'
+          path: './site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request live URLs (retry while the CDN catches up)
+        run: |
+          fail=0
+          for path in / /preview/ /preview/play/; do
+            url="https://thomas-tahk.github.io/portfolio$path"
+            code=000
+            for i in 1 2 3 4 5 6; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' -L "$url")
+              [ "$code" = 200 ] && break
+              sleep 10
+            done
+            echo "$code $url"
+            [ "$code" = 200 ] || fail=1
+          done
+          exit $fail
