@@ -1,9 +1,9 @@
 import makeSection from "./components/Section";
 import makeKaplayCtx from "./kaplayCtx";
-import { PALETTE, LAYOUT, zoomForScreen } from "./constants";
+import { PALETTE, LAYOUT, ICON_KICK, zoomForScreen } from "./constants";
 import makePlayer from "./entities/Player";
 import content from "./content.json";
-import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, isEmailModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom } from "./store";
+import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, isEmailModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom, resetIconsRequestAtom } from "./store";
 
 const BASE = import.meta.env.BASE_URL
 
@@ -174,19 +174,13 @@ export default async function initGame() {
         "Skills",
         () => {
             store.set(isSkillsModalVisibleAtom, true)
-            // Reset logos to initial positions when re-entering (if any exist)
-            if (spawnedLogos.length > 0) {
-                spawnTechLogos()
-            }
         },
         () => {
-            // Spawn logos when exiting (first time or reset)
-            spawnTechLogos()
         }
     )
 
     makeSection(
-        k, 
+        k,
         k.vec2(L.sections.experience.x, L.sections.experience.y), 
         "Experience",
         () => {
@@ -203,65 +197,69 @@ export default async function initGame() {
         }
     )
 
-    // Tech stack logos for Skills section interactivity
-    let spawnedLogos = []
-    
-    function spawnTechLogos() {
-        // Clear any existing logos first
-        clearTechLogos()
-        
-        const logoData = [
-            { name: "javascript-logo", scale: 0.5 },
-            { name: "typescript-logo", scale: 0.5 },
-            { name: "react-logo", scale: 0.4 },
-            { name: "nextjs-logo", scale: 0.6 },
-            { name: "html-logo", scale: 0.5 },
-            { name: "css-logo", scale: 0.5 },
-            { name: "tailwind-logo", scale: 0.6 },
-            { name: "python-logo", scale: 0.4 },
-            { name: "postgres-logo", scale: 0.4 }
-        ]
-        
-        // Skills section position (reference point)
-        const skillsPos = k.vec2(L.sections.skills.x, L.sections.skills.y)
-        
-        // Create 3x3 grid to the left of Skills section with even more offset and spacing
-        const startX = skillsPos.x + L.techLogos.offsetX
-        const startY = skillsPos.y + L.techLogos.offsetY
-        const spacing = L.techLogos.spacing
-        
-        logoData.forEach((logoInfo, index) => {
-            const row = Math.floor(index / 3)
-            const col = index % 3
-            
-            const logo = k.add([
-                k.sprite(logoInfo.name),
-                k.scale(logoInfo.scale),
-                k.anchor("center"),
-                k.area(),
-                k.body({ 
-                    jumpForce: 0,     // Disable jumping
-                    mass: 0.1,        // Very light mass
-                    friction: 0.3,    // Low friction for easy sliding
-                    bounce: 0.8       // High bounce for dynamic feel
-                }), 
-                k.pos(startX + col * spacing, startY + row * spacing),
-                "tech-logo"
-            ])
-            
-            spawnedLogos.push(logo)
+    // Tech icons: a cluster near Skills from load. Kick with Space / tap; they slow to a stop; Reset icons restores them.
+    const TECH_LOGOS = [
+        "javascript-logo",
+        "typescript-logo",
+        "react-logo",
+        "nextjs-logo",
+        "html-logo",
+        "css-logo",
+        "tailwind-logo",
+        "python-logo",
+        "postgres-logo"
+    ]
+
+    function addTechLogo(name, index) {
+        const T = L.techLogos
+        const start = k.vec2(
+            L.sections.skills.x + T.offsetX + (index % 3) * T.spacing,
+            L.sections.skills.y + T.offsetY + Math.floor(index / 3) * T.spacing
+        )
+        const logo = k.add([
+            k.sprite(name),
+            k.scale(1),
+            k.anchor("center"),
+            k.area(),
+            k.body(),
+            k.pos(start),
+            "tech-logo",
+            { start, drift: k.vec2(0, 0), logoName: name }
+        ])
+        logo.scale = k.vec2(ICON_KICK.size / Math.max(logo.width, logo.height)) // same on-screen size for every logo
+        logo.onUpdate(() => {
+            logo.move(logo.drift)
+            logo.drift = logo.drift.scale(Math.exp(-ICON_KICK.damping * k.dt()))
+            if (logo.drift.len() < 5) logo.drift = k.vec2(0, 0)
+            logo.pos.x = Math.min(L.map.maxX, Math.max(L.map.minX, logo.pos.x))
+            logo.pos.y = Math.min(L.map.maxY, Math.max(L.map.minY, logo.pos.y))
         })
-        
+        return logo
     }
-    
-    function clearTechLogos() {
-        spawnedLogos.forEach(logo => {
-            if (logo.exists()) {
-                logo.destroy()
-            }
+
+    let techLogos = []
+    k.onLoad(() => { techLogos = TECH_LOGOS.map(addTechLogo) }) // sprite sizes are only known once loaded
+
+    // kick the nearest icon if there is at most 1.5 player widths of empty space between it and the player
+    function kickNearestLogo() {
+        const reachGap = ICON_KICK.reachInPlayerWidths * ICON_KICK.playerWidth
+        const playerHalf = ICON_KICK.playerWidth / 2
+        let nearest = null
+        let nearestGap = Infinity
+        for (const logo of techLogos) {
+            const gap = logo.pos.dist(player.pos) - playerHalf - (Math.max(logo.width, logo.height) * logo.scale.x) / 2
+            if (gap < nearestGap) { nearest = logo; nearestGap = gap }
+        }
+        if (!nearest || nearestGap > reachGap) return
+        nearest.drift = nearest.pos.sub(player.pos).unit().scale(ICON_KICK.speed)
+    }
+
+    store.sub(resetIconsRequestAtom, () => {
+        techLogos.forEach((logo) => {
+            logo.pos = logo.start.clone()
+            logo.drift = k.vec2(0, 0)
         })
-        spawnedLogos = []
-    }
+    })
 
     // every interactive zone as {name, x, y, w, h} in world units (test hook)
     function getZones() {
@@ -271,11 +269,12 @@ export default async function initGame() {
     }
 
     // create player object nudged up a bit more for final positioning
-    const player = makePlayer(k, k.vec2(L.spawn.x, L.spawn.y), 700)
+    const player = makePlayer(k, k.vec2(L.spawn.x, L.spawn.y), 700, kickNearestLogo)
     // test hook: lets Playwright read the player (prod build, so gated on the URL, not build mode)
     if (new URLSearchParams(window.location.search).has("test")) {
         window.__player = player
         window.__layout = { map: L.map, zoneSize: L.sectionSize, zones: getZones(), maxTextWidth: Math.max(...textWidths) }
+        window.__icons = () => techLogos.map((l) => ({ name: l.logoName, x: l.pos.x, y: l.pos.y, startX: l.start.x, startY: l.start.y }))
     }
 
 }

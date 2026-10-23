@@ -48,3 +48,9 @@ export function zoomForScreen(width, height) {
     const zoom = Math.min(width / VIEW_W, height / VIEW_H)
     return Math.min(ZOOM_MAX_BOUND, Math.max(ZOOM_MIN_BOUND, zoom))
 }
+
+// A touch shorter than this is a tap (kick); held longer it walks toward the finger.
+export const TAP_MAX_MS = 250
+
+// Tech icons: on-screen size, kick strength (world units/s), how fast they slow (higher = stops sooner), and reach in player widths
+export const ICON_KICK = { size: 100, speed: 1000, damping: 4, reachInPlayerWidths: 1.5, playerWidth: 40 }

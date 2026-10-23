@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { closeAllModals } from "./store";
 import ControlsMessage from "./reactComponents/ControlsMessage";
+import ResetIconsButton from "./reactComponents/ResetIconsButton";
 import AboutModal from "./reactComponents/AboutModal";
 import EmailModal from "./reactComponents/EmailModal";
 import ProjectModal from "./reactComponents/ProjectModal";
@@ -18,6 +19,7 @@ export default function ReactUI() {
     return (
         <>
             <ControlsMessage />
+            <ResetIconsButton />
             <AboutModal />
             <EmailModal />
             <ProjectModal />

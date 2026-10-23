@@ -38,7 +38,7 @@ export default function ControlsMessage() {
         <p 
             className={`controls-message ${isVisible ? 'controls-visible' : 'controls-hidden'}`}
         >
-            Use mouse, WASD, or arrow keys to move around
+            Move: mouse, touch-hold, WASD or arrows. Kick tech icons: Space or tap. Put them back: Reset icons.
         </p>
     );
 }
