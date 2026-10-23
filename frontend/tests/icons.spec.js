@@ -68,12 +68,14 @@ test('/play/ Reset icons puts every icon back', async ({ page }) => {
 test.describe('phone', () => {
   test.use({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true })
 
-  async function cdpTouch(page, ms) {
+  // Both events are sent without awaiting in between: each CDP round trip costs ~100ms+, which would make a "tap" look like a hold.
+  async function cdpTap(page) {
     const cdp = await page.context().newCDPSession(page)
     const point = [{ x: 375 / 2 + 100, y: 812 / 2 + 150, id: 1 }]
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: point })
-    await page.waitForTimeout(ms)
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+    await Promise.all([
+      cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: point }),
+      cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }),
+    ])
   }
 
   test('/play/ a short tap next to an icon kicks it and does not walk the player', async ({ page }) => {
@@ -81,7 +83,7 @@ test.describe('phone', () => {
     const first = await standBesideFirstIcon(page)
     const before = await playerPos(page)
 
-    await cdpTouch(page, 0)
+    await cdpTap(page)
     await page.waitForTimeout(400)
 
     const icon = (await icons(page))[KICKED]
