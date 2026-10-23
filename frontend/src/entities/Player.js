@@ -1,5 +1,5 @@
 import { DIAGONAL_FACTOR } from "../constants";
-import { isEmailModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, store } from "../store";
+import { isAnyModalOpen } from "../store";
 
 // make instance of a player with the following properties
 export default function makePlayer(k, posVec2, speed) {
@@ -50,11 +50,14 @@ export default function makePlayer(k, posVec2, speed) {
             )
         }
 
-        if (
-            store.get(isSocialModalVisibleAtom) || 
-            store.get(isEmailModalVisibleAtom) || 
-            store.get(isProjectModalVisibleAtom)) {
-
+        // Modal open: ignore movement so the touch that dismisses it doesn't walk into another zone
+        if (isAnyModalOpen()) {
+            isMouseDown = false
+            player.direction = k.vec2(0, 0)
+            if (!player.getCurAnim().name.includes("idle")) {
+                player.play(`${player.directionName}-idle`)
+            }
+            return
         }
 
         player.direction = k.vec2(0, 0)

@@ -1,5 +1,5 @@
 import { useAtomValue, useAtom } from "jotai";
-import { isProjectModalVisibleAtom, chosenProjectDataAtom } from "../store";
+import { isProjectModalVisibleAtom, chosenProjectDataAtom, dismissOnBackdrop } from "../store";
 
 export default function ProjectModal() {
   const projectData = useAtomValue(chosenProjectDataAtom);
@@ -7,7 +7,7 @@ export default function ProjectModal() {
 
   return (
     isVisible && (
-      <div className="modal projects-modal">
+      <div className="modal projects-modal" onClick={dismissOnBackdrop}>
         <div className="modal-content">
           <h1>{projectData.title}</h1>
           <div className="projects-list">

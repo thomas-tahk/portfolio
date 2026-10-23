@@ -1,6 +1,6 @@
 import {useAtom, useAtomValue} from "jotai";
 import { useState } from "react";
-import { isEmailModalVisibleAtom, emailAtom } from "../store";
+import { isEmailModalVisibleAtom, emailAtom, dismissOnBackdrop } from "../store";
 
 export default function EmailModal() {
     const [isVisible, setIsVisible] = useAtom(isEmailModalVisibleAtom)
@@ -28,7 +28,7 @@ export default function EmailModal() {
 
     return (
         isVisible && (
-            <div className="modal">
+            <div className="modal" onClick={dismissOnBackdrop}>
                 <div className="modal-content">
                     <h1>Copy my email to your clipboard?</h1>
                     <span>{email}</span>
@@ -44,4 +44,4 @@ export default function EmailModal() {
             </div>
         )
     )
-}
+}
