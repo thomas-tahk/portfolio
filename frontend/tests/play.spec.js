@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { standardChecks, sitePath } from './standardChecks.js'
+import { zoomForScreen } from '../src/constants.js'
 
 test('/play/ passes standard checks', async ({ page }) => {
   await standardChecks(page, '/play/')
@@ -160,7 +161,14 @@ for (const size of [{ width: 375, height: 812 }, { width: 1280, height: 800 }]) 
     await page.setViewportSize(size)
     await page.goto(sitePath('/play/') + '?test')
     await page.waitForFunction(() => window.__layout)
-    const { map, zoneSize, zones } = await page.evaluate(() => window.__layout)
+    const { map, zoneSize, zones, maxTextWidth } = await page.evaluate(() => window.__layout)
+
+    // the widest world text (the intro) fits inside the viewport at load zoom
+    expect(maxTextWidth * zoomForScreen(size.width, size.height), 'widest text on screen (px)').toBeLessThanOrEqual(size.width)
+
+    // spawn is clear of every zone: no modal is open right after load, before any input
+    await page.waitForTimeout(500)
+    await expect(page.locator('.modal')).toHaveCount(0)
 
     expect(zones.length, 'zones exposed').toBeGreaterThanOrEqual(7)
     for (const z of zones) {

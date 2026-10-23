@@ -15,6 +15,7 @@ export const CAMERA_FOLLOW_RATE = 10 // higher = camera sticks closer to the pla
 export const LAYOUT = {
     map: { minX: -1700, maxX: 1700, minY: -1700, maxY: 1400 },
     spawn: { x: 0, y: 0 },
+    textWrapWidth: 1300, // max world width of a text line; < phone view width (1500) so nothing clips
     intro: { x: 0, y: -1500, fontSize: 90 },
     socials: {
         github: { x: -600, y: -1000 },

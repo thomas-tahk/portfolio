@@ -96,14 +96,17 @@ export default async function initGame() {
     const black = k.Color.fromHex("#000000")
 
     // text with a dark shadow behind it, centred on (x, y)
+    // lines wrap at L.textWrapWidth so the long intro fits a phone screen at load zoom
+    const textWidths = [] // rendered widths, exposed to tests
     function addShadowedText(str, x, y, size) {
         for (const [color, dx] of [[black, SHADOW], [orange, 0]]) {
-            k.add([
-                k.text(str, { font: "ibm-bold", size }),
+            const textObj = k.add([
+                k.text(str, { font: "ibm-bold", size, width: L.textWrapWidth, align: "center" }),
                 k.color(color),
                 k.anchor("center"),
                 k.pos(x + dx, y),
             ])
+            if (dx === 0) textWidths.push(textObj.width)
         }
     }
 
@@ -272,7 +275,7 @@ export default async function initGame() {
     // test hook: lets Playwright read the player (prod build, so gated on the URL, not build mode)
     if (new URLSearchParams(window.location.search).has("test")) {
         window.__player = player
-        window.__layout = { map: L.map, zoneSize: L.sectionSize, zones: getZones() }
+        window.__layout = { map: L.map, zoneSize: L.sectionSize, zones: getZones(), maxTextWidth: Math.max(...textWidths) }
     }
 
 }
