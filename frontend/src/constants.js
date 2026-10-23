@@ -23,8 +23,8 @@ export const LAYOUT = {
         gmail: { x: 600, y: -1000 },
     },
     socialRadius: 90,
-    socialLogoDy: -200, // logo sits this far above its circle
-    socialLabelDy: -100, // label sits this far above its circle
+    socialLogoDy: -290, // logo sits this far above its circle (clear of the label)
+    socialLabelDy: -125, // label centre; its bottom edge sits ~15 above the circle top, like the section labels
     socialLabelFontSize: 40,
     socialLogoScale: { github: 0.2, linkedin: 0.3, gmail: 0.3 },
     sections: {
