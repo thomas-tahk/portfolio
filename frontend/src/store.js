@@ -71,6 +71,9 @@ if (new URLSearchParams(window.location.search).has("test")) {
             projects: isProjectModalVisibleAtom,
             about: isAboutModalVisibleAtom,
             experience: isExperienceModalVisibleAtom,
+            skills: isSkillsModalVisibleAtom,
+            email: isEmailModalVisibleAtom,
+            social: isSocialModalVisibleAtom,
         }
         store.set(atoms[atomName], open)
     }
