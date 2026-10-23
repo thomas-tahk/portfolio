@@ -3,7 +3,7 @@ import makeKaplayCtx from "./kaplayCtx";
 import { PALETTE, LAYOUT, ICON_KICK, zoomForScreen } from "./constants";
 import makePlayer from "./entities/Player";
 import content from "./content.json";
-import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, isEmailModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom, resetIconsRequestAtom } from "./store";
+import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, isEmailModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom } from "./store";
 
 const BASE = import.meta.env.BASE_URL
 
@@ -197,7 +197,7 @@ export default async function initGame() {
         }
     )
 
-    // Tech icons: a cluster near Skills from load. Kick with Space / tap; they slow to a stop; Reset icons restores them.
+    // Tech icons: a cluster near Skills from load. Kick with Space / tap; they slow to a stop; closing the Skills popup puts them back.
     const TECH_LOGOS = [
         "javascript-logo",
         "typescript-logo",
@@ -254,7 +254,9 @@ export default async function initGame() {
         nearest.drift = nearest.pos.sub(player.pos).unit().scale(ICON_KICK.speed)
     }
 
-    store.sub(resetIconsRequestAtom, () => {
+    // closing the Skills popup snaps every icon back to its home spot
+    store.sub(isSkillsModalVisibleAtom, () => {
+        if (store.get(isSkillsModalVisibleAtom)) return
         techLogos.forEach((logo) => {
             logo.pos = logo.start.clone()
             logo.drift = k.vec2(0, 0)

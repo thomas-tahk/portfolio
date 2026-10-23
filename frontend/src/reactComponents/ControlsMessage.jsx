@@ -15,7 +15,7 @@ export default function ControlsMessage() {
 
     return (
         <div className="controls-message">
-            <p>Move: mouse, touch-hold, WASD or arrows. Kick tech icons: Space or tap. Put them back: Reset icons.</p>
+            <p>Move: mouse, touch-hold, WASD or arrows. Kick tech icons: Space or tap. Visit Skills to put them back.</p>
             <button className="controls-close" aria-label="Dismiss controls hint" onClick={() => setIsDismissed(true)}>
                 ✕
             </button>

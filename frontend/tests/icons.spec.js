@@ -50,7 +50,7 @@ test('/play/ Space far from every icon kicks nothing', async ({ page }) => {
   for (const i of await icons(page)) expect([i.x, i.y]).toEqual([i.startX, i.startY])
 })
 
-test('/play/ Reset icons puts every icon back', async ({ page }) => {
+test('/play/ closing the Skills popup puts every icon back', async ({ page }) => {
   await openGame(page)
   await standBesideFirstIcon(page)
   await page.keyboard.press('Space')
@@ -58,9 +58,8 @@ test('/play/ Reset icons puts every icon back', async ({ page }) => {
   const kicked = (await icons(page))[KICKED]
   expect(kicked.x, 'icon moved before reset').not.toBe(kicked.startX)
 
-  const button = page.getByRole('button', { name: 'Reset icons' })
-  expect((await button.boundingBox()).height, 'tap target height').toBeGreaterThanOrEqual(44)
-  await button.click()
+  await page.evaluate(() => window.__openModal('skills', true))
+  await page.evaluate(() => window.__openModal('skills', false))
   await page.waitForTimeout(200)
   for (const i of await icons(page)) expect([i.x, i.y], `${i.name} back at start`).toEqual([i.startX, i.startY])
 })
@@ -90,13 +89,5 @@ test.describe('phone', () => {
     expect(Math.hypot(icon.x - first.x, icon.y - first.y), 'icon moved').toBeGreaterThan(20)
     const after = await playerPos(page)
     expect(Math.hypot(after.x - before.x, after.y - before.y), 'player walked').toBeLessThan(15)
-  })
-
-  test('/play/ Reset icons button is fully on screen and tappable at 375px', async ({ page }) => {
-    await openGame(page)
-    const box = await page.getByRole('button', { name: 'Reset icons' }).boundingBox()
-    expect(box.x).toBeGreaterThanOrEqual(0)
-    expect(box.x + box.width).toBeLessThanOrEqual(375)
-    expect(box.height).toBeGreaterThanOrEqual(44)
   })
 })

@@ -151,31 +151,12 @@ p {
     opacity: 1;
 }
 
-.reset-icons-btn {
-    position: fixed;
-    bottom: 12px;
-    right: 12px;
-    min-height: 44px;
-    min-width: 44px;
-    padding: 0 12px;
-    font-size: 14px;
-    color: var(--color2);
-    background-color: var(--color1);
-    border: 2px solid var(--color2);
-    border-radius: 8px;
-    z-index: 2000;
-}
-
-.reset-icons-btn:active {
-    background-color: var(--color4);
-}
-
-/* bottom-left; right edge stays clear of the Reset button (about 120px wide) */
+/* bottom-left */
 .controls-message {
     position: fixed;
     bottom: 12px;
     left: 12px;
-    right: 150px;
+    right: 12px;
     max-width: 420px;
     box-sizing: border-box;
     display: flex;
