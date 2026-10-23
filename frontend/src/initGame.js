@@ -2,6 +2,7 @@ import makeSection from "./components/Section";
 import makeKaplayCtx from "./kaplayCtx";
 import { PALETTE, LAYOUT, ICON_KICK, zoomForScreen } from "./constants";
 import makePlayer from "./entities/Player";
+import { wrapToMap } from "./utils";
 import content from "./content.json";
 import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, isEmailModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom } from "./store";
 
@@ -231,8 +232,7 @@ export default async function initGame() {
             logo.move(logo.drift)
             logo.drift = logo.drift.scale(Math.exp(-ICON_KICK.damping * k.dt()))
             if (logo.drift.len() < 5) logo.drift = k.vec2(0, 0)
-            logo.pos.x = Math.min(L.map.maxX, Math.max(L.map.minX, logo.pos.x))
-            logo.pos.y = Math.min(L.map.maxY, Math.max(L.map.minY, logo.pos.y))
+            wrapToMap(logo.pos, L.map) // past an edge, re-enter from the opposite side so icons can't be lost
         })
         return logo
     }
@@ -271,11 +271,13 @@ export default async function initGame() {
     }
 
     // create player object nudged up a bit more for final positioning
-    const player = makePlayer(k, k.vec2(L.spawn.x, L.spawn.y), 700, kickNearestLogo)
+    const player = makePlayer(k, k.vec2(L.spawn.x, L.spawn.y), 700, kickNearestLogo, L.map)
     // test hook: lets Playwright read the player (prod build, so gated on the URL, not build mode)
     if (new URLSearchParams(window.location.search).has("test")) {
         window.__player = player
         window.__layout = { map: L.map, zoneSize: L.sectionSize, zones: getZones(), maxTextWidth: Math.max(...textWidths) }
+        window.__cam = () => ({ x: k.camPos().x, y: k.camPos().y })
+        window.__iconObjects = () => techLogos
         window.__icons = () => techLogos.map((l) => ({ name: l.logoName, x: l.pos.x, y: l.pos.y, startX: l.start.x, startY: l.start.y }))
     }
 
