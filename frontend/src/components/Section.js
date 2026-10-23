@@ -1,10 +1,10 @@
-import {PALETTE} from "../constants"
+import {PALETTE, LAYOUT} from "../constants"
 
 export default function makeSection(k, posVec2, sectionName, onEnter, onExit) {
-    // Responsive section size and font
-    const sectionSize = k.height() * 0.2; // 20% of screen height
-    const fontSize = k.height() * 0.07; // 7% of screen height
-    const outlineWidth = k.height() * 0.002; // Responsive outline
+    // Sizes are fixed world units (constants.js LAYOUT), not screen fractions
+    const sectionSize = LAYOUT.sectionSize;
+    const fontSize = LAYOUT.sectionFontSize;
+    const outlineWidth = LAYOUT.outlineWidth;
     
     const section = k.add([
         k.rect(sectionSize, sectionSize, {radius: 10}),
@@ -51,4 +51,4 @@ export default function makeSection(k, posVec2, sectionName, onEnter, onExit) {
     }
 
     return section
-}
+}
