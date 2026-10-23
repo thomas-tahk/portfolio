@@ -151,6 +151,25 @@ p {
     opacity: 1;
 }
 
+.reset-icons-btn {
+    position: fixed;
+    top: 3vh;
+    right: 5vw;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 16px;
+    font-size: 1rem;
+    color: var(--color2);
+    background-color: var(--color1);
+    border: 2px solid var(--color2);
+    border-radius: 8px;
+    z-index: 2000;
+}
+
+.reset-icons-btn:active {
+    background-color: var(--color4);
+}
+
 .controls-message {
     position: fixed;
     color: var(--color2);

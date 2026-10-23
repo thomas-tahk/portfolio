@@ -1,8 +1,8 @@
-import { DIAGONAL_FACTOR, CAMERA_FOLLOW_RATE } from "../constants";
+import { DIAGONAL_FACTOR, CAMERA_FOLLOW_RATE, TAP_MAX_MS } from "../constants";
 import { isAnyModalOpen } from "../store";
 
 // make instance of a player with the following properties
-export default function makePlayer(k, posVec2, speed) {
+export default function makePlayer(k, posVec2, speed, onKick) {
     const player = k.add([
         k.sprite("player", {anim: "walk-down-idle"}),
         k.scale(8),
@@ -21,22 +21,36 @@ export default function makePlayer(k, posVec2, speed) {
 
     // TODO: player controls, etc...
     let isMouseDown = false
+    let touchStartedAt = null // ms timestamp while a finger is down; a touch only walks once held past TAP_MAX_MS
+    let lastTouchAt = 0 // browsers fire synthetic mouse events after a touch; ignore them
     const game = document.getElementById("game");
+    const SYNTHETIC_MOUSE_MS = 600
+
     game.addEventListener("focusout", () => {
         isMouseDown = false
+        touchStartedAt = null
     })
     game.addEventListener("mousedown", () => {
+        if (performance.now() - lastTouchAt < SYNTHETIC_MOUSE_MS) return
         isMouseDown = true
     })
     game.addEventListener("mouseup", () => {
         isMouseDown = false
     })  
-    game.addEventListener("touchstart", (e) => {
-        isMouseDown = true
+    game.addEventListener("touchstart", () => {
+        touchStartedAt = lastTouchAt = performance.now()
     })
-    game.addEventListener("touchend", (e) => {
-        isMouseDown = false
+    game.addEventListener("touchend", () => {
+        lastTouchAt = performance.now()
+        const wasTap = touchStartedAt !== null && lastTouchAt - touchStartedAt < TAP_MAX_MS
+        touchStartedAt = null
+        if (wasTap && !isAnyModalOpen()) onKick()
     })
+    game.addEventListener("touchcancel", () => {
+        touchStartedAt = null
+    })
+
+    const isTouchWalking = () => touchStartedAt !== null && performance.now() - touchStartedAt >= TAP_MAX_MS
 
     player.onUpdate(() => {
         
@@ -46,6 +60,7 @@ export default function makePlayer(k, posVec2, speed) {
         // Modal open: ignore movement so the touch that dismisses it doesn't walk into another zone
         if (isAnyModalOpen()) {
             isMouseDown = false
+            touchStartedAt = null
             player.direction = k.vec2(0, 0)
             if (!player.getCurAnim().name.includes("idle")) {
                 player.play(`${player.directionName}-idle`)
@@ -72,7 +87,7 @@ export default function makePlayer(k, posVec2, speed) {
         // Mouse controls (fallback if no keyboard input)
         if (player.direction.eq(k.vec2(0, 0))) {
             const worldMousePos = k.toWorld(k.mousePos())
-            if (isMouseDown) {
+            if (isMouseDown || isTouchWalking()) {
                 player.direction = worldMousePos.sub(player.pos).unit()
             }
         } else {
@@ -127,6 +142,10 @@ export default function makePlayer(k, posVec2, speed) {
           }
 
         player.move(player.direction.scale(speed))
+    })
+
+    k.onKeyPress("space", () => {
+        if (!isAnyModalOpen()) onKick()
     })
 
     return player
