@@ -133,6 +133,27 @@ test('/play/ test hooks only exist with ?test', async ({ page }) => {
   expect(await page.evaluate(() => typeof window.__openModal)).toBe('function')
 })
 
+test('/play/ logs no console log or info messages when walking into every zone', async ({ page }) => {
+  const logs = []
+  page.on('console', (m) => ['log', 'info'].includes(m.type()) && logs.push(m.text()))
+
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.goto(sitePath('/play/') + '?test')
+  await page.waitForFunction(() => window.__layout)
+  const zones = await page.evaluate(() => window.__layout.zones)
+
+  // Teleport onto each zone centre and back to spawn so every enter/exit handler runs
+  const moveTo = (x, y) => page.evaluate(([px, py]) => { window.__player.pos.x = px; window.__player.pos.y = py }, [x, y])
+  for (const z of zones) {
+    await moveTo(z.x, z.y)
+    await page.waitForTimeout(150)
+    await moveTo(0, 0)
+    await page.waitForTimeout(150)
+  }
+
+  expect(logs, 'console log/info messages').toEqual([])
+})
+
 // World layout: zones are spread out (>= one zone-width apart) and inside the map, at phone and desktop sizes.
 for (const size of [{ width: 375, height: 812 }, { width: 1280, height: 800 }]) {
   test(`/play/ zones are spread out and inside the map at ${size.width}x${size.height}`, async ({ page }) => {

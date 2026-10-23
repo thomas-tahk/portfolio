@@ -8,6 +8,7 @@ const isText = (v) => typeof v === 'string' && v.trim() !== ''
 
 test('content.json has every required field', () => {
   expect(isText(content.headline), 'headline').toBe(true)
+  expect(isText(content.gameIntro), 'gameIntro').toBe(true)
   for (const key of ['name', 'text', 'photo']) expect(isText(content.about?.[key]), `about.${key}`).toBe(true)
   for (const key of ['email', 'github', 'linkedin']) expect(isText(content.contact?.[key]), `contact.${key}`).toBe(true)
 
