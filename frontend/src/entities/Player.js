@@ -1,8 +1,9 @@
 import { DIAGONAL_FACTOR, CAMERA_FOLLOW_RATE, TAP_MAX_MS } from "../constants";
 import { isAnyModalOpen } from "../store";
+import { wrapToMap } from "../utils";
 
 // make instance of a player with the following properties
-export default function makePlayer(k, posVec2, speed, onKick) {
+export default function makePlayer(k, posVec2, speed, onKick, map) {
     const player = k.add([
         k.sprite("player", {anim: "walk-down-idle"}),
         k.scale(8),
@@ -142,6 +143,12 @@ export default function makePlayer(k, posVec2, speed, onKick) {
           }
 
         player.move(player.direction.scale(speed))
+    })
+
+    // Past a map edge: teleport to the opposite edge and shift the camera by the same jump so it doesn't sweep across the map
+    player.onUpdate(() => {
+        const { dx, dy } = wrapToMap(player.pos, map)
+        if (dx || dy) k.camPos(k.camPos().add(k.vec2(dx, dy)))
     })
 
     k.onKeyPress("space", () => {
