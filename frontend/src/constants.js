@@ -37,13 +37,13 @@ export const LAYOUT = {
     sectionFontSize: 70,
     outlineWidth: 3,
     // Skills tech-logo grid, relative to the Skills section centre
-    techLogos: { offsetX: -500, offsetY: -200, spacing: 150 },
+    techLogos: { offsetX: -150, offsetY: 250, spacing: 150 },
 }
 
 // Camera zoom so the screen shows about VIEW world units: fit a VIEW_W x VIEW_H window into the screen
-// (the tighter axis wins), clamped to the +/- button bounds. Phone portrait ~0.25, 1280x800 ~0.67.
+// (the tighter axis wins), clamped to the +/- button bounds. Phone portrait ~0.25, 1280x800 ~0.47 (all four section labels in view).
 const VIEW_W = 1500
-const VIEW_H = 1200
+const VIEW_H = 1700
 export function zoomForScreen(width, height) {
     const zoom = Math.min(width / VIEW_W, height / VIEW_H)
     return Math.min(ZOOM_MAX_BOUND, Math.max(ZOOM_MIN_BOUND, zoom))
