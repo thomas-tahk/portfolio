@@ -27,18 +27,13 @@ test('/play/ at 1280x800 all four section labels and part of the tech icons are 
 test.describe('phone HUD', () => {
   test.use({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true })
 
-  test('/play/ controls hint is small, clear of Reset icons, and dismisses with the close button', async ({ page }) => {
+  test('/play/ controls hint is small and dismisses with the close button', async ({ page }) => {
     await page.goto(sitePath('/play/') + '?test')
     const hint = page.locator('.controls-message')
-    const reset = page.locator('.reset-icons-btn')
     await expect(hint).toBeVisible()
     const h = await hint.boundingBox()
-    const r = await reset.boundingBox()
 
     expect(h.height, 'hint height vs viewport').toBeLessThanOrEqual(812 * 0.25)
-    const overlap = h.x < r.x + r.width && r.x < h.x + h.width && h.y < r.y + r.height && r.y < h.y + h.height
-    expect(overlap, 'hint overlaps Reset button').toBe(false)
-    expect(r.height, 'Reset tap target').toBeGreaterThanOrEqual(44)
 
     await page.getByRole('button', { name: 'Dismiss controls hint' }).click()
     await expect(hint).toHaveCount(0)

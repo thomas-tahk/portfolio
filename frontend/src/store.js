@@ -43,9 +43,6 @@ export const experienceDataAtom = atom({
 
 export const cameraZoomValueAtom = atom({value : 1})
 
-// bumped by the HUD "Reset icons" button; the game listens and puts the tech icons back
-export const resetIconsRequestAtom = atom(0)
-
 export const store = createStore()
 
 const modalAtoms = [
