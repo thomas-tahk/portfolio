@@ -27,10 +27,20 @@ export default function makePlayer(k, posVec2, speed, onKick, map) {
     const game = document.getElementById("game");
     const SYNTHETIC_MOUSE_MS = 600
 
-    game.addEventListener("focusout", () => {
+    // Held keys are tracked here (not via k.isKeyDown) so they can be cleared when focus is lost:
+    // the keyup/mouseup/touchend that would release them never arrives while the tab or window is unfocused.
+    const heldKeys = new Set()
+    document.addEventListener("keydown", (event) => heldKeys.add(event.code))
+    document.addEventListener("keyup", (event) => heldKeys.delete(event.code))
+    const isHeld = (...codes) => codes.some((code) => heldKeys.has(code))
+    const releaseAllInput = () => {
+        heldKeys.clear()
         isMouseDown = false
         touchStartedAt = null
-    })
+    }
+    game.addEventListener("focusout", releaseAllInput)
+    window.addEventListener("blur", releaseAllInput)
+    document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" && releaseAllInput())
     game.addEventListener("mousedown", () => {
         if (performance.now() - lastTouchAt < SYNTHETIC_MOUSE_MS) return
         isMouseDown = true
@@ -72,16 +82,16 @@ export default function makePlayer(k, posVec2, speed, onKick, map) {
         player.direction = k.vec2(0, 0)
         
         // Keyboard controls (WASD + Arrow Keys)
-        if (k.isKeyDown("w") || k.isKeyDown("up")) {
+        if (isHeld("KeyW", "ArrowUp")) {
             player.direction.y -= 1
         }
-        if (k.isKeyDown("s") || k.isKeyDown("down")) {
+        if (isHeld("KeyS", "ArrowDown")) {
             player.direction.y += 1
         }
-        if (k.isKeyDown("a") || k.isKeyDown("left")) {
+        if (isHeld("KeyA", "ArrowLeft")) {
             player.direction.x -= 1
         }
-        if (k.isKeyDown("d") || k.isKeyDown("right")) {
+        if (isHeld("KeyD", "ArrowRight")) {
             player.direction.x += 1
         }
         
