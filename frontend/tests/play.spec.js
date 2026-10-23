@@ -141,6 +141,10 @@ for (const size of [{ width: 375, height: 812 }, { width: 1280, height: 800 }]) 
     await page.waitForFunction(() => window.__layout)
     const { map, zoneSize, zones } = await page.evaluate(() => window.__layout)
 
+    // spawn is clear of every zone: no modal is open right after load, before any input
+    await page.waitForTimeout(500)
+    await expect(page.locator('.modal')).toHaveCount(0)
+
     expect(zones.length, 'zones exposed').toBeGreaterThanOrEqual(7)
     for (const z of zones) {
       expect(z.x - z.w / 2, `${z.name} left edge`).toBeGreaterThanOrEqual(map.minX)
