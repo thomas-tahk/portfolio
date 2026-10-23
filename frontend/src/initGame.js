@@ -107,7 +107,7 @@ export default async function initGame() {
         }
     }
 
-    addShadowedText("Hi, I'm Thomas Tahk, a developer for the web and video games", L.intro.x, L.intro.y, L.intro.fontSize)
+    addShadowedText(content.gameIntro, L.intro.x, L.intro.y, L.intro.fontSize)
 
     // Load Gmail logo sprite
     k.loadSprite("gmail-logo", `${BASE}logos/gmail-logo.svg`);
@@ -139,34 +139,19 @@ export default async function initGame() {
 
     // Add collision detection for social circles
     githubCircle.onCollide("player", () => {
-        console.log("Entered GitHub circle!")
         store.set(selectedLinkAtom, content.contact.github)
         store.set(selectedLinkDescriptionAtom, "Check out my GitHub profile to see my code and projects!")
         store.set(isSocialModalVisibleAtom, true)
     })
 
-    githubCircle.onCollideEnd("player", () => {
-        console.log("Exited GitHub circle!")
-    })
-
     linkedinCircle.onCollide("player", () => {
-        console.log("Entered LinkedIn circle!")
         store.set(selectedLinkAtom, content.contact.linkedin)
         store.set(selectedLinkDescriptionAtom, "Connect with me on LinkedIn for professional networking!")
         store.set(isSocialModalVisibleAtom, true)
     })
 
-    linkedinCircle.onCollideEnd("player", () => {
-        console.log("Exited LinkedIn circle!")
-    })
-
     gmailCircle.onCollide("player", () => {
-        console.log("Entered Gmail circle!")
         store.set(isEmailModalVisibleAtom, true)
-    })
-
-    gmailCircle.onCollideEnd("player", () => {
-        console.log("Exited Gmail circle!")
     })
 
 
@@ -174,13 +159,9 @@ export default async function initGame() {
     makeSection(
         k, 
         k.vec2(L.sections.about.x, L.sections.about.y), 
-        "About", 
-        (section) => {
-            console.log("Entered About section!")
+        "About",
+        () => {
             store.set(isAboutModalVisibleAtom, true)
-        },
-        (section) => {
-            console.log("Exited About section!")
         }
     )
 
@@ -188,16 +169,14 @@ export default async function initGame() {
         k, 
         k.vec2(L.sections.skills.x, L.sections.skills.y), 
         "Skills",
-        (section) => {
-            console.log("Entered Skills section!")
+        () => {
             store.set(isSkillsModalVisibleAtom, true)
             // Reset logos to initial positions when re-entering (if any exist)
             if (spawnedLogos.length > 0) {
                 spawnTechLogos()
             }
         },
-        (section) => {
-            console.log("Exited Skills section!")
+        () => {
             // Spawn logos when exiting (first time or reset)
             spawnTechLogos()
         }
@@ -207,12 +186,8 @@ export default async function initGame() {
         k, 
         k.vec2(L.sections.experience.x, L.sections.experience.y), 
         "Experience",
-        (section) => {
-            console.log("Entered Experience section!")
+        () => {
             store.set(isExperienceModalVisibleAtom, true)
-        },
-        (section) => {
-            console.log("Exited Experience section!")
         }
     )
 
@@ -220,12 +195,8 @@ export default async function initGame() {
         k, 
         k.vec2(L.sections.projects.x, L.sections.projects.y), 
         "Projects",
-        (section) => {
-            console.log("Entered Projects section!")
+        () => {
             store.set(isProjectModalVisibleAtom, true)
-        },
-        (section) => {
-            console.log("Exited Projects section!")
         }
     )
 
@@ -278,7 +249,6 @@ export default async function initGame() {
             spawnedLogos.push(logo)
         })
         
-        console.log(`Spawned ${spawnedLogos.length} tech logos!`)
     }
     
     function clearTechLogos() {
