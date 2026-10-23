@@ -1,4 +1,4 @@
-import { DIAGONAL_FACTOR } from "../constants";
+import { DIAGONAL_FACTOR, CAMERA_FOLLOW_RATE } from "../constants";
 import { isAnyModalOpen } from "../store";
 
 // make instance of a player with the following properties
@@ -16,6 +16,8 @@ export default function makePlayer(k, posVec2, speed) {
             directionName: "walk-down",
         }
     ])
+
+    k.camPos(player.pos) // start centred on the player (no initial slide)
 
     // TODO: player controls, etc...
     let isMouseDown = false
@@ -38,17 +40,8 @@ export default function makePlayer(k, posVec2, speed) {
 
     player.onUpdate(() => {
         
-        // Camera follows player centered
-        const targetCamPos = k.vec2(player.pos.x, player.pos.y)
-        if (!k.camPos().eq(targetCamPos)) {
-            k.tween(
-                k.camPos(), 
-                targetCamPos, 
-                0.2, 
-                (newPost) => k.camPos(newPost),
-                k.easings.linear
-            )
-        }
+        // Camera eases toward the player: one lerp per frame, framerate independent
+        k.camPos(k.camPos().lerp(player.pos, 1 - Math.exp(-CAMERA_FOLLOW_RATE * k.dt())))
 
         // Modal open: ignore movement so the touch that dismisses it doesn't walk into another zone
         if (isAnyModalOpen()) {
