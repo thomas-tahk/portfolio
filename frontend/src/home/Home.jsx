@@ -32,7 +32,7 @@ function ProjectItem({ project, className }) {
         <img
           className="shot"
           src={`${BASE}${project.image}`}
-          alt={`Placeholder for a ${project.name} screenshot, coming soon`}
+          alt={project.imageAlt ?? `Placeholder for a ${project.name} screenshot, coming soon`}
           width="640"
           height="360"
           loading="lazy"
@@ -127,7 +127,7 @@ export default function Home() {
         <section aria-labelledby="about-h" className="about">
           <h2 id="about-h">About</h2>
           <img
-            src={`${BASE}headshot-small.jpg`}
+            src={`${BASE}${content.about.photoSmall}`}
             alt={`Portrait of ${content.about.name}`}
             width="120"
             height="180"

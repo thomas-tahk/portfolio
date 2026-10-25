@@ -18,8 +18,10 @@ function mergedEvent(i, repo = 'knowflow') {
 const json = (route, body, status = 200) =>
   route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
 
+const pageParam = (route) => Number(new URL(route.request().url()).searchParams.get('page') ?? 1)
+
 async function mockFeed(page, events) {
-  await page.route(EVENTS_URL, (route) => json(route, events))
+  await page.route(EVENTS_URL, (route) => json(route, pageParam(route) > 1 ? [] : events))
   await page.route(PULL_URL, (route) => {
     const number = Number(new URL(route.request().url()).pathname.split('/').pop())
     return json(route, { title: `Merged change ${number}`, html_url: 'https://github.com/thomas-tahk/portfolio/pull/52' })
@@ -97,4 +99,85 @@ test('recent work is cached in sessionStorage so a reload makes no new requests'
   await page.reload()
   await expect(section(page)).toBeVisible()
   expect(requests).toBe(0)
+})
+
+// GitHub returns full pages of 100; a shorter page means the feed has ended.
+const filler = (page, n) =>
+  Array.from({ length: n }, (_, i) => ({ id: `p${page}-${i}`, type: 'PushEvent', created_at: hoursAgo(0), repo: { name: 'thomas-tahk/knowflow' }, payload: {} }))
+const fullPage = (page, events = []) => [...events, ...filler(page, 100 - events.length)]
+
+function pagedFeed(pages) {
+  const requests = []
+  const handler = (route) => {
+    const page = pageParam(route)
+    requests.push(page)
+    const body = pages[page - 1]
+    return body === 'error' ? json(route, { message: 'boom' }, 500) : json(route, body ?? [])
+  }
+  return { requests, handler }
+}
+
+test('recent work reads page 2 when page 1 has fewer than 5 merges', async ({ page }) => {
+  const feed = pagedFeed([fullPage(1, [mergedEvent(1), mergedEvent(2)]), [mergedEvent(3), mergedEvent(4), mergedEvent(5)]])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(5)
+  expect(feed.requests).toEqual([1, 2])
+})
+
+test('recent work makes one events request when page 1 has 5 merges', async ({ page }) => {
+  const feed = pagedFeed([[1, 2, 3, 4, 5].map((i) => mergedEvent(i))])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(5)
+  expect(feed.requests).toEqual([1])
+})
+
+test('recent work shows page 1 merges when page 2 fails', async ({ page }) => {
+  const feed = pagedFeed([fullPage(1, [mergedEvent(1)]), 'error'])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(1)
+  expect(feed.requests).toEqual([1, 2])
+})
+
+test('recent work is hidden when page 2 fails and page 1 had no merges', async ({ page }) => {
+  const feed = pagedFeed([fullPage(1, [mergedEvent(1, 'not-in-feed')]), 'error'])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.getByRole('heading', { name: 'Experience' })).toBeVisible()
+  await expect(section(page)).toHaveCount(0)
+  expect(feed.requests).toEqual([1, 2])
+})
+
+test('recent work stops after 3 pages when none hold merges', async ({ page }) => {
+  const feed = pagedFeed([fullPage(1), fullPage(2), fullPage(3), fullPage(4)])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.getByRole('heading', { name: 'Experience' })).toBeVisible()
+  await expect(section(page)).toHaveCount(0)
+  expect(feed.requests).toEqual([1, 2, 3])
+})
+
+test('recent work stops when a page comes back empty', async ({ page }) => {
+  const feed = pagedFeed([fullPage(1, [mergedEvent(1)]), [], fullPage(3, [mergedEvent(2)])])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(1)
+  expect(feed.requests).toEqual([1, 2])
+})
+
+test('recent work stops when a page has fewer than 100 events', async ({ page }) => {
+  const feed = pagedFeed([[mergedEvent(1)], [mergedEvent(2)]])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(1)
+  expect(feed.requests).toEqual([1])
+})
+
+test('recent work lists an event once when pages overlap', async ({ page }) => {
+  const feed = pagedFeed([fullPage(1, [mergedEvent(1)]), [mergedEvent(1), mergedEvent(2)]])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(2)
 })
