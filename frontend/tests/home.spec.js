@@ -47,3 +47,41 @@ test('copy email button copies the address', async ({ page, context }) => {
   await expect(page.getByRole('status')).toContainText('copied')
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(content.contact.email)
 })
+
+test.describe('theme toggle', () => {
+  test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
+  const bg = (page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+  const SHOTS = process.env.SHOT_DIR
+
+  test('toggles, persists across reload, axe clean in both themes', async ({ page }) => {
+    const AxeBuilder = (await import('@axe-core/playwright')).default
+    await page.goto(sitePath('/'))
+    expect(await bg(page)).toBe('rgb(255, 255, 255)')
+    const axe = async () => {
+      const { violations } = await new AxeBuilder({ page }).analyze()
+      return violations.filter((v) => ['serious', 'critical'].includes(v.impact)).map((v) => v.id)
+    }
+    expect(await axe()).toEqual([])
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/i57-light.png` })
+
+    await page.getByRole('button', { name: 'Switch to dark theme' }).click()
+    expect(await bg(page)).toBe('rgb(10, 14, 26)')
+    expect(await axe()).toEqual([])
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/i57-dark.png` })
+
+    await page.reload()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    expect(await bg(page)).toBe('rgb(10, 14, 26)')
+
+    await page.getByRole('button', { name: 'Switch to light theme' }).click()
+    expect(await bg(page)).toBe('rgb(255, 255, 255)')
+  })
+
+  test('default follows system dark', async ({ browser }) => {
+    const ctx = await browser.newContext({ colorScheme: 'dark' })
+    const page = await ctx.newPage()
+    await page.goto(sitePath('/'))
+    expect(await bg(page)).toBe('rgb(10, 14, 26)')
+    await ctx.close()
+  })
+})

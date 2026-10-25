@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: #ffffff;
   --text: #0d1117;
   --muted: #3d4655;
@@ -9,16 +9,31 @@
   --line: #0d1117;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0a0e1a;
-    --text: #f5f7fb;
-    --muted: #c3cbdb;
-    --accent: #ffd400;
-    --on-accent: #0a0e1a;
-    --card: #141b33;
-    --line: #f5f7fb;
-  }
+/* A palette is one set of custom properties per theme. The inline script in
+   index.html always sets data-theme on <html> (stored choice, else system). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0a0e1a;
+  --text: #f5f7fb;
+  --muted: #c3cbdb;
+  --accent: #ffd400;
+  --on-accent: #0a0e1a;
+  --card: #141b33;
+  --line: #f5f7fb;
+}
+
+.theme-toggle {
+  float: right;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+  cursor: pointer;
 }
 
 *,
