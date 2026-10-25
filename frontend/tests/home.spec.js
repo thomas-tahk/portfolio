@@ -69,7 +69,6 @@ test('copy email button copies the address', async ({ page, context }) => {
 test.describe('theme toggle', () => {
   test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
   const bg = (page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
-  const SHOTS = process.env.SHOT_DIR
 
   test('toggles, persists across reload, axe clean in both themes', async ({ page }) => {
     const AxeBuilder = (await import('@axe-core/playwright')).default
@@ -112,5 +111,57 @@ test.describe('theme toggle', () => {
     await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto(sitePath('/'))
     expect(await bg(page)).toBe('rgb(10, 14, 26)')
+  })
+})
+
+test.describe('palette picker (preview only)', () => {
+  test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
+  const SHOTS = process.env.SHOT_DIR
+
+  test('no picker without preview path or ?palette=', async ({ page }) => {
+    await page.goto(sitePath('/'))
+    await expect(page.getByRole('combobox', { name: 'Palette' })).toHaveCount(0)
+    await expect(page.locator('html')).not.toHaveAttribute('data-palette', /.+/)
+  })
+
+  test('each palette x light/dark is axe clean, and persists', async ({ page }) => {
+    const AxeBuilder = (await import('@axe-core/playwright')).default
+    await page.goto(sitePath('/') + '?palette=ember')
+    const picker = page.getByRole('combobox', { name: 'Palette' })
+    for (const id of ['ember', 'forest', 'grape', 'cherry']) {
+      await picker.selectOption(id)
+      for (const theme of ['light', 'dark']) {
+        const toggle = page.getByRole('button', { name: 'Dark mode' })
+        if ((await toggle.getAttribute('aria-pressed')) !== String(theme === 'dark')) await toggle.click()
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
+        const { violations } = await new AxeBuilder({ page }).analyze()
+        const bad = violations.filter((v) => ['serious', 'critical'].includes(v.impact)).map((v) => v.id)
+        expect(bad, `${id} ${theme}`).toEqual([])
+        if (SHOTS) await page.screenshot({ path: `${SHOTS}/i58-${id}-${theme}.png`, fullPage: true })
+      }
+    }
+    await page.reload()
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'cherry')
+  })
+
+  test('h1 does not break mid-word at 320px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 })
+    await page.goto(sitePath('/'))
+    const h1 = page.getByRole('heading', { level: 1 })
+    // every word must sit on exactly one line (a mid-word break gives it two rects)
+    const wordLines = await h1.evaluate((el) => {
+      const text = el.firstChild
+      const out = []
+      for (const m of text.data.matchAll(/\S+/g)) {
+        const r = document.createRange()
+        r.setStart(text, m.index)
+        r.setEnd(text, m.index + m[0].length)
+        out.push(new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size)
+      }
+      return out
+    })
+    expect(wordLines).toEqual([1, 1])
+    expect(await h1.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true)
+    expect(await h1.innerText()).toBe('Thomas Tahk')
   })
 })

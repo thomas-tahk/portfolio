@@ -22,10 +22,84 @@
   --line: #f5f7fb;
 }
 
+/* Palette directions (issue 58). Applied via data-palette on <html>; the
+   picker only exists on preview builds. No data-palette = the original above. */
+:root[data-palette='ember'] {
+  --bg: #fffaf5;
+  --text: #1a0f0a;
+  --muted: #4a3a32;
+  --accent: #c0310a;
+  --on-accent: #ffffff;
+  --card: #fff1e8;
+  --line: #1a0f0a;
+}
+:root[data-palette='ember'][data-theme='dark'] {
+  --bg: #140a06;
+  --text: #fff6f0;
+  --muted: #e0c9bc;
+  --accent: #ff7a2e;
+  --on-accent: #140a06;
+  --card: #26140c;
+  --line: #fff6f0;
+}
+:root[data-palette='forest'] {
+  --bg: #f7fffa;
+  --text: #08150e;
+  --muted: #32463b;
+  --accent: #0b6b3a;
+  --on-accent: #ffffff;
+  --card: #e6f6ec;
+  --line: #08150e;
+}
+:root[data-palette='forest'][data-theme='dark'] {
+  --bg: #05140c;
+  --text: #f1fff6;
+  --muted: #bfdccb;
+  --accent: #2ee27a;
+  --on-accent: #05140c;
+  --card: #0d2619;
+  --line: #f1fff6;
+}
+:root[data-palette='grape'] {
+  --bg: #fcf9ff;
+  --text: #150a24;
+  --muted: #443757;
+  --accent: #6a1bd1;
+  --on-accent: #ffffff;
+  --card: #f1e8ff;
+  --line: #150a24;
+}
+:root[data-palette='grape'][data-theme='dark'] {
+  --bg: #0f0620;
+  --text: #f8f2ff;
+  --muted: #d2c3ea;
+  --accent: #b57bff;
+  --on-accent: #0f0620;
+  --card: #1d0e3a;
+  --line: #f8f2ff;
+}
+:root[data-palette='cherry'] {
+  --bg: #fffafc;
+  --text: #1c0613;
+  --muted: #4f3041;
+  --accent: #c4005f;
+  --on-accent: #ffffff;
+  --card: #ffe8f2;
+  --line: #1c0613;
+}
+:root[data-palette='cherry'][data-theme='dark'] {
+  --bg: #18040e;
+  --text: #fff2f8;
+  --muted: #e8c3d4;
+  --accent: #ff4d9d;
+  --on-accent: #18040e;
+  --card: #2c0a1c;
+  --line: #fff2f8;
+}
+
 .theme-toggle {
-  float: right;
   min-width: 44px;
-  min-height: 44px;
+  min-height: 2.75rem;
   padding: 0 0.75rem;
   font: inherit;
   font-weight: 600;
@@ -89,6 +163,7 @@ main {
 }
 
 h1 {
+  overflow-wrap: normal;
   font-size: 2.25rem;
   line-height: 1.1;
   margin: 0.5rem 0;
@@ -215,7 +290,27 @@ button:focus-visible {
   max-width: 44rem;
   margin: 0 auto;
   padding: 0.75rem 1rem 0;
-  text-align: right;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+.palette-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-right: auto;
+}
+.palette-picker select {
+  min-height: 2.75rem;
+  padding: 0 0.5rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
 }
 
 .game-link {
