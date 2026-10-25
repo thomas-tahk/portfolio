@@ -161,8 +161,12 @@ export default function makePlayer(k, posVec2, speed, onKick, map) {
         if (dx || dy) k.camPos(k.camPos().add(k.vec2(dx, dy)))
     })
 
-    k.onKeyPress("space", () => {
-        if (!isAnyModalOpen()) onKick()
+    // Space is read from the document like the movement keys: Kaplay's own key events only reach the canvas,
+    // which loses focus after any HTML click (e.g. a popup's Close button), leaving WASD working but Space dead.
+    document.addEventListener("keydown", (event) => {
+        if (event.code !== "Space" || event.repeat || isAnyModalOpen()) return
+        event.preventDefault() // don't also press whichever button last took focus
+        onKick()
     })
 
     return player
