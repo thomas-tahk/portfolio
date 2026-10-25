@@ -70,12 +70,21 @@ function Switch({ label, pressed, onClick, disabled, describedBy }) {
   )
 }
 
+// Left edge under the gear, clamped so the panel stays inside the bar (320px phones).
+function placePanel(gear, panel) {
+  const bar = gear.parentElement.getBoundingClientRect()
+  const wanted = gear.getBoundingClientRect().left - bar.left
+  const max = bar.width - 16 - panel.offsetWidth
+  panel.style.left = `${Math.max(16, Math.min(wanted, max))}px`
+}
+
 function usePanel() {
   const [open, setOpen] = useState(false)
   const gear = useRef(null)
   const panel = useRef(null)
   useEffect(() => {
     if (!open) return undefined
+    placePanel(gear.current, panel.current)
     panel.current.querySelector('button, input').focus()
     const onKey = (e) => {
       if (e.key !== 'Escape') return
@@ -84,11 +93,22 @@ function usePanel() {
     }
     const onPointer = (e) => {
       if (panel.current.contains(e.target) || gear.current.contains(e.target)) return
+      const hadFocus = panel.current.contains(document.activeElement)
+      setOpen(false)
+      // after the browser's own mousedown focus change
+      if (hadFocus) setTimeout(() => gear.current.focus(), 0)
+    }
+    const onFocusOut = (e) => {
+      const to = e.relatedTarget
+      if (!to || panel.current.contains(to) || gear.current.contains(to)) return
       setOpen(false)
     }
     document.addEventListener('keydown', onKey)
     document.addEventListener('pointerdown', onPointer)
+    panel.current.addEventListener('focusout', onFocusOut)
+    const node = panel.current
     return () => {
+      node.removeEventListener('focusout', onFocusOut)
       document.removeEventListener('keydown', onKey)
       document.removeEventListener('pointerdown', onPointer)
     }
@@ -163,7 +183,7 @@ export default function Settings() {
         </button>
         <Switch
           label="Auto-rotate"
-          pressed={autoRotate}
+          pressed={rotating}
           onClick={toggleRotate}
           disabled={reduced}
           describedBy={reduced ? 'rotate-note' : undefined}

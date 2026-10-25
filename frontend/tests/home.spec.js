@@ -227,10 +227,12 @@ test.describe('settings panel', () => {
     await page.clock.runFor(24_000)
     expect(await palette(page)).toBe('forest')
     await page.evaluate(() => delete document.hidden)
+    await page.clock.runFor(8_100)
+    expect(await palette(page)).toBe('grape')
 
     await rotate.click()
     await page.clock.runFor(24_000)
-    expect(await palette(page)).toBe('forest')
+    expect(await palette(page)).toBe('grape')
   })
 
   test.describe('reduced motion', () => {
@@ -242,6 +244,7 @@ test.describe('settings panel', () => {
       await open(page)
       const rotate = page.getByRole('button', { name: 'Auto-rotate' })
       await expect(rotate).toBeDisabled()
+      await expect(rotate).toHaveAttribute('aria-pressed', 'false')
       await expect(rotate).toHaveAccessibleDescription(/reduced motion/)
       await page.clock.runFor(30_000)
       expect(await palette(page)).toBeNull()
@@ -266,6 +269,18 @@ test.describe('settings panel', () => {
     await expect(gear(page)).toHaveAttribute('aria-expanded', 'false')
   })
 
+  test('Tab out of the panel closes it; tap outside returns focus to the gear', async ({ page }) => {
+    await page.goto(sitePath('/'))
+    await open(page)
+    await page.getByRole('button', { name: 'Auto-rotate' }).focus()
+    await page.keyboard.press('Tab')
+    await expect(gear(page)).toHaveAttribute('aria-expanded', 'false')
+    await open(page)
+    await page.mouse.click(5, 800)
+    await expect(gear(page)).toHaveAttribute('aria-expanded', 'false')
+    await expect(gear(page)).toBeFocused()
+  })
+
   test('stored palette applies before app JS runs (no flash)', async ({ page }) => {
     await page.route('**/assets/main-*.js', (route) => route.abort())
     await page.addInitScript(() => localStorage.setItem('palette', 'ember'))
@@ -281,6 +296,9 @@ test.describe('settings panel', () => {
     const h = await page.locator('.view-switch > button, .view-switch > a').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
     expect(Math.min(...h)).toBeGreaterThanOrEqual(44)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    const g = await gear(page).boundingBox()
+    const link = await page.locator('.view-switch').getByRole('link', { name: 'Game version →' }).boundingBox()
+    expect(link.x - (g.x + g.width)).toBeLessThan(16)
     const box = await page.locator('#settings-panel').boundingBox()
     expect(box.x).toBeGreaterThanOrEqual(0)
     expect(box.x + box.width).toBeLessThanOrEqual(320)

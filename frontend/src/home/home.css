@@ -309,7 +309,6 @@ button:focus-visible {
 .gear {
   width: 2.75rem;
   height: 2.75rem;
-  margin-right: auto;
   font-size: 1.5rem;
   line-height: 1;
   color: var(--text);
@@ -321,7 +320,6 @@ button:focus-visible {
 .settings-panel {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 1rem;
   z-index: 10;
   width: min(18rem, calc(100vw - 2rem));
   padding: 1rem;
