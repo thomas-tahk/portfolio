@@ -44,7 +44,8 @@ async function keyWalkAxis(page, axis, goal) {
     await page.keyboard.up(code)
     await page.waitForTimeout(100)
   }
-  throw new Error(`could not walk ${axis} to ${goal}`)
+  const fps = await page.evaluate(() => new Promise((r) => { let n = 0; const t0 = performance.now(); const f = () => (performance.now() - t0 < 1000 ? (n++, requestAnimationFrame(f)) : r(n)); f() }))
+  throw new Error(`could not walk ${axis} to ${goal}; at ${JSON.stringify(await playerPos(page))}, ~${fps} fps`)
 }
 
 async function keyWalkTo(page, ...waypoints) {
