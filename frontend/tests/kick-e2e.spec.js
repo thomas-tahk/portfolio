@@ -6,10 +6,10 @@ import { sitePath } from './standardChecks.js'
 const KICKED = 2 // top-right icon of the 3x3 cluster
 const icon = (page) => page.evaluate((i) => window.__icons()[i], KICKED)
 const playerPos = (page) => page.evaluate(() => ({ x: window.__player.pos.x, y: window.__player.pos.y }))
-// Stand up-and-right of the icon (inside kick reach, outside the Skills popup zone): the kick then flies down-left,
-// between its neighbours instead of into them.
-// (The player's hitbox is 40x80 and the icon 100x100, so 85 apart on each axis is clear of touching and ~50 from the icon's edge.)
-const BESIDE_ICON = { x: -750 + 72, y: 500 - 72 }
+const ICON = { x: -750, y: 500 } // start position of that icon
+// Come at it from up-and-right (outside the Skills popup zone): the kick then flies down-left, between its neighbours.
+const BESIDE_ICON = { x: ICON.x + 70, y: ICON.y - 70 } // phone: finger target
+const APPROACH_START = { x: ICON.x + 200, y: ICON.y - 200 }
 const closeButton = (page) => page.getByRole('button', { name: 'Close' })
 
 async function openGame(page) {
@@ -24,44 +24,37 @@ async function expectKicked(page, before, how) {
   expect(Math.hypot(after.x - before.x, after.y - before.y), `icon moved after ${how}`).toBeGreaterThan(20)
 }
 
-// Walk one axis to `goal`: the key goes down for real, and is released on the exact frame the player crosses the goal.
-// (Timing the release from the test process is hopeless on a slow CI machine: a slow frame is 100ms+ = 70+ px.)
-// The release is a synthetic keyup, because Player.js tracks held keys from document keyup events.
-async function keyWalkAxis(page, axis, goal) {
-  const keys = axis === 'x' ? ['KeyA', 'KeyD'] : ['KeyW', 'KeyS']
-  for (let i = 0; i < 8; i++) {
-    const err = goal - (await playerPos(page))[axis]
-    if (Math.abs(err) < 20) return
-    const code = keys[err > 0 ? 1 : 0]
-    await page.keyboard.down(code)
-    await page.evaluate(({ axis, goal, code, up }) => new Promise((done) => {
-      const tick = () => {
-        const v = window.__player.pos[axis]
-        if (up ? v >= goal : v <= goal) { document.dispatchEvent(new KeyboardEvent('keyup', { code })); done() } else requestAnimationFrame(tick)
-      }
-      tick()
-    }), { axis, goal, code, up: err > 0 })
-    await page.keyboard.up(code)
-    await page.waitForTimeout(100)
-  }
-  const fps = await page.evaluate(() => new Promise((r) => { let n = 0; const t0 = performance.now(); const f = () => (performance.now() - t0 < 1000 ? (n++, requestAnimationFrame(f)) : r(n)); f() }))
-  throw new Error(`could not walk ${axis} to ${goal}; at ${JSON.stringify(await playerPos(page))}, ~${fps} fps, close buttons: ${await closeButton(page).count()}`)
-}
-
-async function keyWalkTo(page, ...waypoints) {
-  for (const w of waypoints) {
-    if (w.x !== undefined) await keyWalkAxis(page, 'x', w.x)
-    if (w.y !== undefined) await keyWalkAxis(page, 'y', w.y)
-  }
+// Walk the player (8-way, like WASD) toward `goal`, steering every frame inside the page, and stop at the first frame it is within
+// `within` of the goal (or `ring.within` of the ring centre, or once the `until` selector exists). A test process cannot do this:
+// CI renders ~7 fps, so one frame is ~100 world units and timing key releases from outside overshoots at random.
+// The keys are dispatched as document keydown/keyup events, which is exactly what Player.js listens to.
+async function steer(page, goal, { within = 120, ring, until } = {}) {
+  const arrived = await page.evaluate(({ goal, within, ring, until }) => new Promise((done) => {
+    const held = new Set()
+    const hold = (code, on) => {
+      if (on === held.has(code)) return
+      if (on) held.add(code); else held.delete(code)
+      document.dispatchEvent(new KeyboardEvent(on ? 'keydown' : 'keyup', { code, bubbles: true }))
+    }
+    const finish = (ok) => { ['KeyA', 'KeyD', 'KeyW', 'KeyS'].forEach((c) => hold(c, false)); done(ok) }
+    const t0 = performance.now()
+    const tick = () => {
+      const p = window.__player.pos
+      const dx = goal.x - p.x, dy = goal.y - p.y
+      const close = ring ? Math.hypot(p.x - ring.x, p.y - ring.y) <= ring.within : Math.hypot(dx, dy) <= within
+      if (close || (until && document.querySelector(until))) return finish(true)
+      if (performance.now() - t0 > 15000) return finish(false)
+      hold('KeyA', dx < -8); hold('KeyD', dx > 8); hold('KeyW', dy < -8); hold('KeyS', dy > 8)
+      requestAnimationFrame(tick)
+    }
+    tick()
+  }), { goal, within, ring, until })
+  expect(arrived, `player reached ${JSON.stringify(goal)}`).toBe(true)
   await page.waitForTimeout(300) // let the camera and icons settle
 }
 
-async function walkToSkillsPopupWithKeys(page) {
-  await keyWalkTo(page, { x: -900 })
-  await page.keyboard.down('KeyS') // walk into the Skills zone; the popup opens on contact
-  await closeButton(page).waitFor()
-  await page.keyboard.up('KeyS')
-}
+// Final approach: walk at the icon from up-and-right until it is inside kick reach (centre distance 70..125).
+const approachIcon = async (page) => steer(page, { x: ICON.x, y: ICON.y }, { ring: { ...ICON, within: 125 } })
 
 // Phone: hold a real finger down toward the goal, re-aimed each step, until the player arrives (or `stop()` is true).
 async function fingerWalkTo(page, cdp, goal, stop = async () => false) {
@@ -90,16 +83,21 @@ async function fingerTap(cdp) {
 test('/play/ walk to the icons with the keyboard, press Space: the icon is kicked', async ({ page }) => {
   await openGame(page)
   const before = await icon(page)
-  await keyWalkTo(page, { y: BESIDE_ICON.y }, { x: BESIDE_ICON.x })
+  await steer(page, { x: 0, y: APPROACH_START.y })
+  await steer(page, APPROACH_START)
+  await approachIcon(page)
   await page.keyboard.press('Space')
   await expectKicked(page, before, 'real Space')
 })
 
 test('/play/ visit Skills, click Close, walk to the icons, press Space: the icon is kicked', async ({ page }) => {
   await openGame(page)
-  await walkToSkillsPopupWithKeys(page)
+  await steer(page, { x: -900, y: 0 })
+  await steer(page, { x: -900, y: 400 }, { until: '.skills-modal' }) // walk into the Skills zone; the popup opens on contact
   await closeButton(page).click()
-  await keyWalkTo(page, { x: BESIDE_ICON.x }, { y: BESIDE_ICON.y })
+  await steer(page, { x: APPROACH_START.x, y: 160 }) // out of the zone to the right
+  await steer(page, APPROACH_START)
+  await approachIcon(page)
   const before = await icon(page)
   await page.keyboard.press('Space')
   await expectKicked(page, before, 'Close + real Space')
