@@ -4,6 +4,7 @@ import content from '../content.json'
 const API = 'https://api.github.com'
 const MAX_ITEMS = 5
 const MAX_PAGES = 3
+const PER_PAGE = 100
 const CACHE_KEY = 'recent-work-v1'
 const CACHE_MS = 10 * 60 * 1000
 
@@ -43,17 +44,22 @@ async function loadItems() {
   const { owner, repos } = content.feedRepos
   const allowed = new Set(repos.map((r) => `${owner}/${r}`.toLowerCase()))
   const found = []
+  const seen = new Set()
   for (let page = 1; page <= MAX_PAGES && found.length < MAX_ITEMS; page++) {
     let events
     try {
-      events = await getJson(`${API}/users/${owner}/events/public?per_page=100&page=${page}`)
+      events = await getJson(`${API}/users/${owner}/events/public?per_page=${PER_PAGE}&page=${page}`)
     } catch (error) {
       // A later page failing keeps what earlier pages found; nothing found hides the section.
       if (found.length === 0) throw error
       break
     }
-    found.push(...events.filter((e) => isFeedMerge(e, allowed)))
-    if (events.length === 0) break
+    for (const e of events) {
+      if (!isFeedMerge(e, allowed) || seen.has(e.id)) continue
+      seen.add(e.id)
+      found.push(e)
+    }
+    if (events.length < PER_PAGE) break
   }
   const newest = found.slice(0, MAX_ITEMS)
   return Promise.all(

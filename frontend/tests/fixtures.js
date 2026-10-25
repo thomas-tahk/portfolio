@@ -16,8 +16,9 @@ export const test = base.extend({
     await page.route('https://api.github.com/**', (route) => {
       const { pathname } = new URL(route.request().url())
       const number = Number(pathname.split('/').pop())
+      const page = Number(new URL(route.request().url()).searchParams.get('page') ?? 1)
       const body = pathname.includes('/events/public')
-        ? events
+        ? page > 1 ? [] : events
         : { title: `Fixture change ${number}`, html_url: 'https://github.com/thomas-tahk/portfolio' }
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
     })
