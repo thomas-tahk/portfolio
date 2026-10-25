@@ -24,6 +24,16 @@ function ProjectItem({ project, className }) {
     <li className={className}>
       <h3>{project.name}</h3>
       <p>{project.oneLiner}</p>
+      {project.image && (
+        <img
+          className="shot"
+          src={`${BASE}${project.image}`}
+          alt={`Placeholder for a ${project.name} screenshot, coming soon`}
+          width="640"
+          height="360"
+          loading="lazy"
+        />
+      )}
       <LinkButtons project={project} />
     </li>
   )

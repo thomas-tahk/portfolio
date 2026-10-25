@@ -28,6 +28,18 @@ test('front page lists visible projects, no hidden ones, and links to the game',
   await expect(page).toHaveURL(new RegExp(sitePath('/play/') + '$'))
 })
 
+test('projects with an image show it, and it loads', async ({ page }) => {
+  await page.goto(sitePath('/'))
+  const withImage = content.projects.filter((p) => !p.hidden && p.image)
+  expect(withImage.length).toBeGreaterThan(0)
+  for (const p of withImage) {
+    const img = page.getByRole('img', { name: new RegExp(p.name) })
+    await img.scrollIntoViewIfNeeded()
+    await expect(img).toBeVisible()
+    expect(await img.evaluate((el) => el.complete && el.naturalWidth > 0), `${p.slug} image loaded`).toBe(true)
+  }
+})
+
 test('copy email button copies the address', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto(sitePath('/'))

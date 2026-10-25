@@ -151,7 +151,8 @@
           "label": "Code",
           "url": "https://github.com/thomas-tahk/priority-post"
         }
-      ]
+      ],
+      "image": "projects/priority-post.svg"
     },
     {
       "slug": "dormant",
@@ -211,7 +212,7 @@
       "tier": "more",
       "hidden": false,
       "links": [],
-      "image": "images/servicenow-team-workspace.png"
+      "image": "projects/servicenow-team-workspace.svg"
     },
     {
       "slug": "shows4us",
