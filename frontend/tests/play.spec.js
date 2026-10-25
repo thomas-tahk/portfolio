@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { standardChecks, sitePath } from './standardChecks.js'
+import { zoomForScreen } from '../src/constants.js'
 
 test('/play/ passes standard checks', async ({ page }) => {
   await standardChecks(page, '/play/')
@@ -61,7 +62,7 @@ test.describe('phone touch', () => {
     await page.goto(sitePath('/play/') + '?test')
     await page.waitForFunction(() => window.__player)
 
-    // About zone spans 0.05h-0.25h above the spawn point (initGame.js). The player moves 700
+    // About zone sits 400-600 world units above the spawn point (LAYOUT in constants.js). The player moves 700
     // units/s and walks straight through the zone (closing the modal), so release the touch
     // the moment the modal appears rather than timing a fixed hold.
     const cdp = await page.context().newCDPSession(page)
@@ -132,3 +133,55 @@ test('/play/ test hooks only exist with ?test', async ({ page }) => {
   await page.waitForFunction(() => window.__player)
   expect(await page.evaluate(() => typeof window.__openModal)).toBe('function')
 })
+
+test('/play/ logs no console log or info messages when walking into every zone', async ({ page }) => {
+  const logs = []
+  page.on('console', (m) => ['log', 'info'].includes(m.type()) && logs.push(m.text()))
+
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.goto(sitePath('/play/') + '?test')
+  await page.waitForFunction(() => window.__layout)
+  const zones = await page.evaluate(() => window.__layout.zones)
+
+  // Teleport onto each zone centre and back to spawn so every enter/exit handler runs
+  const moveTo = (x, y) => page.evaluate(([px, py]) => { window.__player.pos.x = px; window.__player.pos.y = py }, [x, y])
+  for (const z of zones) {
+    await moveTo(z.x, z.y)
+    await page.waitForTimeout(150)
+    await moveTo(0, 0)
+    await page.waitForTimeout(150)
+  }
+
+  expect(logs, 'console log/info messages').toEqual([])
+})
+
+// World layout: zones are spread out (>= one zone-width apart) and inside the map, at phone and desktop sizes.
+for (const size of [{ width: 375, height: 812 }, { width: 1280, height: 800 }]) {
+  test(`/play/ zones are spread out and inside the map at ${size.width}x${size.height}`, async ({ page }) => {
+    await page.setViewportSize(size)
+    await page.goto(sitePath('/play/') + '?test')
+    await page.waitForFunction(() => window.__layout)
+    const { map, zoneSize, zones, maxTextWidth } = await page.evaluate(() => window.__layout)
+
+    // the widest world text (the intro) fits inside the viewport at load zoom
+    expect(maxTextWidth * zoomForScreen(size.width, size.height), 'widest text on screen (px)').toBeLessThanOrEqual(size.width)
+
+    // spawn is clear of every zone: no modal is open right after load, before any input
+    await page.waitForTimeout(500)
+    await expect(page.locator('.modal')).toHaveCount(0)
+
+    expect(zones.length, 'zones exposed').toBeGreaterThanOrEqual(7)
+    for (const z of zones) {
+      expect(z.x - z.w / 2, `${z.name} left edge`).toBeGreaterThanOrEqual(map.minX)
+      expect(z.x + z.w / 2, `${z.name} right edge`).toBeLessThanOrEqual(map.maxX)
+      expect(z.y - z.h / 2, `${z.name} top edge`).toBeGreaterThanOrEqual(map.minY)
+      expect(z.y + z.h / 2, `${z.name} bottom edge`).toBeLessThanOrEqual(map.maxY)
+    }
+    for (let i = 0; i < zones.length; i++) {
+      for (let j = i + 1; j < zones.length; j++) {
+        const d = Math.hypot(zones[i].x - zones[j].x, zones[i].y - zones[j].y)
+        expect(d, `${zones[i].name} to ${zones[j].name}`).toBeGreaterThanOrEqual(zoneSize)
+      }
+    }
+  })
+}
