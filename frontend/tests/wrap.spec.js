@@ -34,6 +34,14 @@ for (const edge of EDGES) {
   })
 }
 
+test('/play/ wrapping keeps the distance walked past the edge, so the crossing is one continuous stride', async ({ page }) => {
+  await openGame(page)
+  await page.evaluate((maxX) => { window.__player.pos.x = maxX + 7; window.__player.pos.y = 0 }, M.maxX)
+  await page.waitForTimeout(300)
+  const p = await pos(page)
+  expect(p.x, 'overshoot of 7 carried over to the far side').toBeCloseTo(M.minX + 7, 0)
+})
+
 test('/play/ a kicked icon past an edge wraps to the opposite side', async ({ page }) => {
   await openGame(page)
   await page.evaluate((maxX) => {
