@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test'
 import viteConfig from './vite.config.js'
 
-const PORT = 4173
+const PORT = Number(process.env.PW_PORT) || 4173
 const BASE = viteConfig.base ?? '/'
 
 export default defineConfig({

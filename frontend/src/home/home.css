@@ -1,0 +1,162 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --text: #0d1117;
+  --muted: #3d4655;
+  --accent: #0033cc;
+  --on-accent: #ffffff;
+  --card: #eef2ff;
+  --line: #0d1117;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0e1a;
+    --text: #f5f7fb;
+    --muted: #c3cbdb;
+    --accent: #ffd400;
+    --on-accent: #0a0e1a;
+    --card: #141b33;
+    --line: #f5f7fb;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 1.125rem/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  overflow-wrap: break-word;
+}
+
+main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+h1 {
+  font-size: 2.25rem;
+  line-height: 1.1;
+  margin: 0.5rem 0;
+}
+h2 {
+  font-size: 1.5rem;
+  margin: 2.5rem 0 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 3px solid var(--accent);
+}
+h3 {
+  font-size: 1.125rem;
+  margin: 0 0 0.25rem;
+}
+p {
+  margin: 0.5rem 0;
+}
+
+a {
+  color: var(--accent);
+}
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+.headline {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.skip {
+  position: absolute;
+  left: -999px;
+}
+.skip:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  background: var(--bg);
+  padding: 0.5rem;
+  z-index: 1;
+}
+
+.about img {
+  float: right;
+  width: 7.5rem;
+  height: auto;
+  margin: 0 0 0.5rem 1rem;
+  border: 3px solid var(--accent);
+  border-radius: 0.5rem;
+}
+.about::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.plain-list > li + li {
+  margin-top: 1rem;
+}
+
+.card {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+.more-item {
+  border-left: 4px solid var(--accent);
+  padding-left: 0.75rem;
+}
+.more-item p {
+  margin: 0.25rem 0;
+}
+.meta {
+  color: var(--muted);
+  margin: 0;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.btn {
+  display: inline-block;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.6;
+  text-decoration: none;
+  color: var(--accent);
+  background: transparent;
+  border: 2px solid var(--accent);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+.btn.solid {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.copy-status {
+  color: var(--muted);
+}
+
+.game-link {
+  margin-top: 3rem;
+  text-align: center;
+}
