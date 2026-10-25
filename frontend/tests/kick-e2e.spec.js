@@ -10,7 +10,6 @@ const playerPos = (page) => page.evaluate(() => ({ x: window.__player.pos.x, y: 
 // between its neighbours instead of into them.
 // (The player's hitbox is 40x80 and the icon 100x100, so 85 apart on each axis is clear of touching and ~50 from the icon's edge.)
 const BESIDE_ICON = { x: -750 + 72, y: 500 - 72 }
-const PLAYER_SPEED = 700 // world units per second (initGame.js)
 const closeButton = (page) => page.getByRole('button', { name: 'Close' })
 
 async function openGame(page) {
@@ -25,17 +24,25 @@ async function expectKicked(page, before, how) {
   expect(Math.hypot(after.x - before.x, after.y - before.y), `icon moved after ${how}`).toBeGreaterThan(20)
 }
 
-// Walk one axis to `goal` with real key presses. Presses are timed from the remaining distance and re-checked, so a slow
-// machine (late key release) overshoots once and is corrected instead of ending somewhere random.
+// Walk one axis to `goal`: the key goes down for real, and is released on the exact frame the player crosses the goal.
+// (Timing the release from the test process is hopeless on a slow CI machine: a slow frame is 100ms+ = 70+ px.)
+// The release is a synthetic keyup, because Player.js tracks held keys from document keyup events.
 async function keyWalkAxis(page, axis, goal) {
   const keys = axis === 'x' ? ['KeyA', 'KeyD'] : ['KeyW', 'KeyS']
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 8; i++) {
     const err = goal - (await playerPos(page))[axis]
-    if (Math.abs(err) < 18) return
-    await page.keyboard.down(keys[err > 0 ? 1 : 0])
-    await page.waitForTimeout(Math.max(15, (Math.abs(err) / PLAYER_SPEED) * 1000 * 0.8))
-    await page.keyboard.up(keys[err > 0 ? 1 : 0])
-    await page.waitForTimeout(60)
+    if (Math.abs(err) < 20) return
+    const code = keys[err > 0 ? 1 : 0]
+    await page.keyboard.down(code)
+    await page.evaluate(({ axis, goal, code, up }) => new Promise((done) => {
+      const tick = () => {
+        const v = window.__player.pos[axis]
+        if (up ? v >= goal : v <= goal) { document.dispatchEvent(new KeyboardEvent('keyup', { code })); done() } else requestAnimationFrame(tick)
+      }
+      tick()
+    }), { axis, goal, code, up: err > 0 })
+    await page.keyboard.up(code)
+    await page.waitForTimeout(100)
   }
   throw new Error(`could not walk ${axis} to ${goal}`)
 }
