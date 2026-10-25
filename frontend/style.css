@@ -191,6 +191,31 @@ p {
     border: none;
 }
 
+/* top-left: switch to the plain page */
+.plain-page-link {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--color2);
+    background-color: var(--color1);
+    border: 2px solid var(--color2);
+    border-radius: 8px;
+    z-index: 2000;
+}
+
+.plain-page-link:focus-visible {
+    outline: 3px solid var(--color2);
+    outline-offset: 2px;
+}
+
 /* About Modal Specific Styles */
 .about-content {
     display: flex;

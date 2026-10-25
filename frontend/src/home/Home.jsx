@@ -108,6 +108,11 @@ export default function Home() {
       <a className="skip" href="#main">
         Skip to content
       </a>
+      <nav className="view-switch" aria-label="Switch view">
+        <a className="btn solid" href={`${BASE}play/`}>
+          Play the game version →
+        </a>
+      </nav>
       <main id="main">
         <header>
           <h1>{content.about.name}</h1>

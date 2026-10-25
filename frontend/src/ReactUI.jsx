@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { closeAllModals } from "./store";
+import PlainPageLink from "./reactComponents/PlainPageLink";
 import ControlsMessage from "./reactComponents/ControlsMessage";
 import AboutModal from "./reactComponents/AboutModal";
 import EmailModal from "./reactComponents/EmailModal";
@@ -17,6 +18,7 @@ export default function ReactUI() {
 
     return (
         <>
+            <PlainPageLink />
             <ControlsMessage />
             <AboutModal />
             <EmailModal />
