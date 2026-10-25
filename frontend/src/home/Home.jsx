@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import content from '../content.json'
+import RecentWork from './RecentWork'
 
 const BASE = import.meta.env.BASE_URL
 const visibleProjects = content.projects.filter((p) => !p.hidden)
@@ -142,7 +143,7 @@ export default function Home() {
           </ul>
         </section>
 
-        {/* Recent-work slot (live GitHub feed) goes here. */}
+        <RecentWork />
 
         <Experience />
         <Contact />
