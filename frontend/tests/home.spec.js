@@ -69,7 +69,6 @@ test('copy email button copies the address', async ({ page, context }) => {
 test.describe('theme toggle', () => {
   test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
   const bg = (page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
-  const SHOTS = process.env.SHOT_DIR
 
   test('toggles, persists across reload, axe clean in both themes', async ({ page }) => {
     const AxeBuilder = (await import('@axe-core/playwright')).default
@@ -112,5 +111,101 @@ test.describe('theme toggle', () => {
     await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto(sitePath('/'))
     expect(await bg(page)).toBe('rgb(10, 14, 26)')
+  })
+})
+
+test.describe('palette picker (preview only)', () => {
+  test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
+  // The suite builds one base, so serve the home page at <base>preview/ too.
+  const gotoPreview = async (page) => {
+    await page.route('**/preview/', async (route) => {
+      const url = new URL(sitePath('/'), route.request().url()).href
+      await route.fulfill({ response: await route.fetch({ url }) })
+    })
+    await page.goto(sitePath('/preview/'))
+  }
+
+  test('no picker without preview path or ?palette=, and a stored palette is ignored', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('palette', 'ember'))
+    await page.goto(sitePath('/'))
+    await expect(page.locator('#home')).not.toBeEmpty()
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(255, 255, 255)')
+    await expect(page.locator('html')).not.toHaveAttribute('data-preview', /.*/)
+    await expect(page.getByRole('combobox', { name: 'Palette' })).toHaveCount(0)
+    await expect(page.locator('html')).not.toHaveAttribute('data-palette', /.+/)
+  })
+
+  test('each palette x light/dark is axe clean, and persists', async ({ page }) => {
+    const AxeBuilder = (await import('@axe-core/playwright')).default
+    await page.goto(sitePath('/') + '?palette=ember')
+    const picker = page.getByRole('combobox', { name: 'Palette' })
+    for (const id of ['ember', 'forest', 'grape', 'cherry']) {
+      await picker.selectOption(id)
+      for (const theme of ['light', 'dark']) {
+        const toggle = page.getByRole('button', { name: 'Dark mode' })
+        if ((await toggle.getAttribute('aria-pressed')) !== String(theme === 'dark')) await toggle.click()
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
+        const { violations } = await new AxeBuilder({ page }).analyze()
+        const bad = violations.filter((v) => ['serious', 'critical'].includes(v.impact)).map((v) => v.id)
+        expect(bad, `${id} ${theme}`).toEqual([])
+        if (SHOTS) await page.screenshot({ path: `${SHOTS}/i58-${id}-${theme}.png`, fullPage: true })
+      }
+    }
+    await gotoPreview(page)
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'cherry')
+  })
+
+  test('every picker option survives a query-less reload (inline list matches picker)', async ({ page }) => {
+    await gotoPreview(page)
+    const picker = page.getByRole('combobox', { name: 'Palette' })
+    await expect(picker).toBeVisible()
+    const ids = await picker.locator('option').evaluateAll((os) => os.map((o) => o.value))
+    expect(ids).toEqual(['', 'ember', 'forest', 'grape', 'cherry'])
+    for (const id of ids) {
+      await picker.selectOption(id)
+      await gotoPreview(page)
+      if (id) await expect(page.locator('html')).toHaveAttribute('data-palette', id)
+      else await expect(page.locator('html')).not.toHaveAttribute('data-palette', /.+/)
+    }
+  })
+
+  test('?palette=Ember (any case) shows the picker and applies the palette', async ({ page }) => {
+    await page.goto(sitePath('/') + '?palette=Ember')
+    await expect(page.getByRole('combobox', { name: 'Palette' })).toHaveValue('ember')
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'ember')
+    await page.goto(sitePath('/') + '?palette=')
+    await expect(page.getByRole('combobox', { name: 'Palette' })).toBeVisible()
+  })
+
+  test('top bar controls share one height and the picker fits at 320px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 })
+    await page.goto(sitePath('/') + '?palette=ember')
+    const bar = page.locator('.view-switch')
+    const h = await bar.locator('button, a').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
+    expect(new Set(h).size).toBe(1)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    const fits = await page.locator('.palette-picker').evaluate((el) => el.getBoundingClientRect().right <= innerWidth - 16)
+    expect(fits).toBe(true)
+  })
+
+  test('h1 does not break mid-word at 320px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 })
+    await page.goto(sitePath('/'))
+    const h1 = page.getByRole('heading', { level: 1 })
+    // every word must sit on exactly one line (a mid-word break gives it two rects)
+    const wordLines = await h1.evaluate((el) => {
+      const text = el.firstChild
+      const out = []
+      for (const m of text.data.matchAll(/\S+/g)) {
+        const r = document.createRange()
+        r.setStart(text, m.index)
+        r.setEnd(text, m.index + m[0].length)
+        out.push(new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size)
+      }
+      return out
+    })
+    expect(wordLines).toEqual([1, 1])
+    expect(await h1.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true)
+    expect(await h1.innerText()).toBe('Thomas Tahk')
   })
 })
