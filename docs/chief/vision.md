@@ -9,6 +9,7 @@ Thomas's real portfolio at https://thomas-tahk.github.io/portfolio/ — the page
 - `/` is the hiring page: name, headline, about, featured work, more work, live recent work, experience, contact. Readable on a phone in under a minute.
 - `/play/` is the game: explore the same content, kick things around, fun to poke at.
 - One `content.json` feeds both.
+- Either version reaches the other in one tap (owner, 2026-10-25).
 
 ## Non-goals
 - No backend, database or paid service. Static GitHub Pages only.
@@ -22,9 +23,9 @@ Thomas's real portfolio at https://thomas-tahk.github.io/portfolio/ — the page
 "A hiring manager opens the link on their phone and within a minute knows what I do, sees my best work, and can reach me — and the game is one tap away and fun to mess with."
 
 ## Assumptions
-- **Assumption:** the M3 plan (three variant layouts of `/` to choose from) is still wanted now that M2 has shipped one layout. Open — ask at the M2 review.
+- ~~Assumption: the M3 variant layouts are still wanted.~~ Refuted by owner 2026-10-25: M3 and M4 dropped.
 - **Assumption:** the game redesign (layout + visuals, issue #40) comes after M2 and starts with 3–4 mockups. Confirmed by owner 2026-10-24.
-- **Assumption:** the recent-work feed should show work on other projects, not this repo's own build PRs. Open — ask at the M2 review.
+- ~~Assumption: the feed should hide this repo's own PRs.~~ Refuted 2026-10-25: owner is fine with them showing.
 
 ## Sources
 - Plan: [docs/plan/2026-10-18-portfolio-plan.html](../plan/2026-10-18-portfolio-plan.html)
