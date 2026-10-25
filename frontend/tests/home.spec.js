@@ -81,6 +81,7 @@ test.describe('theme toggle', () => {
     expect(await axe()).toEqual([])
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/i57-light.png` })
 
+    await page.getByRole('button', { name: 'Settings' }).click()
     const toggle = page.getByRole('button', { name: 'Dark mode' })
     await expect(toggle).toHaveAttribute('aria-pressed', 'false')
     await toggle.click()
@@ -93,6 +94,7 @@ test.describe('theme toggle', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
     expect(await bg(page)).toBe('rgb(10, 14, 26)')
 
+    await page.getByRole('button', { name: 'Settings' }).click()
     await expect(page.getByRole('button', { name: 'Dark mode' })).toHaveAttribute('aria-pressed', 'true')
     await page.getByRole('button', { name: 'Dark mode' }).click()
     expect(await bg(page)).toBe('rgb(255, 255, 255)')
@@ -114,78 +116,192 @@ test.describe('theme toggle', () => {
   })
 })
 
-test.describe('palette picker (preview only)', () => {
+test.describe('settings panel', () => {
   test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
-  // The suite builds one base, so serve the home page at <base>preview/ too.
-  const gotoPreview = async (page) => {
-    await page.route('**/preview/', async (route) => {
-      const url = new URL(sitePath('/'), route.request().url()).href
-      await route.fulfill({ response: await route.fetch({ url }) })
-    })
-    await page.goto(sitePath('/preview/'))
+  const ORDER = ['Current', 'Ember', 'Forest', 'Grape', 'Cherry']
+  const gear = (page) => page.getByRole('button', { name: 'Settings' })
+  const open = async (page) => {
+    await gear(page).click()
+    await expect(page.getByRole('button', { name: 'Next palette' })).toBeVisible()
   }
+  const palette = (page) => page.locator('html').getAttribute('data-palette')
+  const checked = (page) => page.getByRole('radio', { checked: true })
 
-  test('no picker without preview path or ?palette=, and a stored palette is ignored', async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem('palette', 'ember'))
+  test('no palette attribute or panel on first visit; default is Current', async ({ page }) => {
     await page.goto(sitePath('/'))
-    await expect(page.locator('#home')).not.toBeEmpty()
-    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(255, 255, 255)')
-    await expect(page.locator('html')).not.toHaveAttribute('data-preview', /.*/)
-    await expect(page.getByRole('combobox', { name: 'Palette' })).toHaveCount(0)
-    await expect(page.locator('html')).not.toHaveAttribute('data-palette', /.+/)
+    await expect(gear(page)).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.getByRole('button', { name: 'Next palette' })).toBeHidden()
+    expect(await palette(page)).toBeNull()
+    await open(page)
+    await expect(checked(page)).toHaveAccessibleName('Current')
   })
 
-  test('each palette x light/dark is axe clean, and persists', async ({ page }) => {
-    const AxeBuilder = (await import('@axe-core/playwright')).default
-    await page.goto(sitePath('/') + '?palette=ember')
-    const picker = page.getByRole('combobox', { name: 'Palette' })
-    for (const id of ['ember', 'forest', 'grape', 'cherry']) {
-      await picker.selectOption(id)
+  for (const size of [{ width: 390, height: 844 }, { width: 1280, height: 800 }]) {
+    test(`panel is axe clean in light and dark at ${size.width}px`, async ({ page }) => {
+      const AxeBuilder = (await import('@axe-core/playwright')).default
+      await page.setViewportSize(size)
+      await page.goto(sitePath('/'))
+      await open(page)
       for (const theme of ['light', 'dark']) {
         const toggle = page.getByRole('button', { name: 'Dark mode' })
         if ((await toggle.getAttribute('aria-pressed')) !== String(theme === 'dark')) await toggle.click()
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
         const { violations } = await new AxeBuilder({ page }).analyze()
         const bad = violations.filter((v) => ['serious', 'critical'].includes(v.impact)).map((v) => v.id)
-        expect(bad, `${id} ${theme}`).toEqual([])
-        if (SHOTS) await page.screenshot({ path: `${SHOTS}/i58-${id}-${theme}.png`, fullPage: true })
+        expect(bad, theme).toEqual([])
+        if (SHOTS) await page.screenshot({ path: `${SHOTS}/panel-${size.width}-${theme}.png` })
+      }
+    })
+  }
+
+  test('each palette x light/dark is axe clean with the panel open', async ({ page }) => {
+    const AxeBuilder = (await import('@axe-core/playwright')).default
+    await page.goto(sitePath('/'))
+    await open(page)
+    for (const name of ORDER) {
+      await page.getByRole('radio', { name }).check()
+      for (const theme of ['light', 'dark']) {
+        const toggle = page.getByRole('button', { name: 'Dark mode' })
+        if ((await toggle.getAttribute('aria-pressed')) !== String(theme === 'dark')) await toggle.click()
+        const { violations } = await new AxeBuilder({ page }).analyze()
+        const bad = violations.filter((v) => ['serious', 'critical'].includes(v.impact)).map((v) => v.id)
+        expect(bad, `${name} ${theme}`).toEqual([])
       }
     }
-    await gotoPreview(page)
-    await expect(page.locator('html')).toHaveAttribute('data-palette', 'cherry')
   })
 
-  test('every picker option survives a query-less reload (inline list matches picker)', async ({ page }) => {
-    await gotoPreview(page)
-    const picker = page.getByRole('combobox', { name: 'Palette' })
-    await expect(picker).toBeVisible()
-    const ids = await picker.locator('option').evaluateAll((os) => os.map((o) => o.value))
-    expect(ids).toEqual(['', 'ember', 'forest', 'grape', 'cherry'])
-    for (const id of ids) {
-      await picker.selectOption(id)
-      await gotoPreview(page)
-      if (id) await expect(page.locator('html')).toHaveAttribute('data-palette', id)
-      else await expect(page.locator('html')).not.toHaveAttribute('data-palette', /.+/)
+  test('Next palette cycles Current > Ember > Forest > Grape > Cherry > Current', async ({ page }) => {
+    await page.goto(sitePath('/'))
+    await open(page)
+    for (const name of [...ORDER.slice(1), 'Current']) {
+      await page.getByRole('button', { name: 'Next palette' }).click()
+      await expect(checked(page)).toHaveAccessibleName(name)
+      if (name === 'Current') expect(await palette(page)).toBeNull()
+      else expect(await palette(page)).toBe(name.toLowerCase())
     }
   })
 
-  test('?palette=Ember (any case) shows the picker and applies the palette', async ({ page }) => {
-    await page.goto(sitePath('/') + '?palette=Ember')
-    await expect(page.getByRole('combobox', { name: 'Palette' })).toHaveValue('ember')
-    await expect(page.locator('html')).toHaveAttribute('data-palette', 'ember')
-    await page.goto(sitePath('/') + '?palette=')
-    await expect(page.getByRole('combobox', { name: 'Palette' })).toBeVisible()
+  test('every option survives a reload (inline script list matches the panel)', async ({ page }) => {
+    await page.goto(sitePath('/'))
+    await open(page)
+    for (const name of ORDER) {
+      await page.getByRole('radio', { name }).check()
+      await page.reload()
+      await open(page)
+      await expect(checked(page)).toHaveAccessibleName(name)
+      if (name === 'Current') expect(await palette(page)).toBeNull()
+      else expect(await palette(page)).toBe(name.toLowerCase())
+    }
   })
 
-  test('top bar controls share one height and the picker fits at 320px', async ({ page }) => {
+  test('theme, palette and auto-rotate persist; ?palette= is ignored', async ({ page }) => {
+    await page.goto(sitePath('/') + '?palette=cherry')
+    expect(await palette(page)).toBeNull()
+    await open(page)
+    await page.getByRole('radio', { name: 'Grape' }).check()
+    await page.getByRole('button', { name: 'Dark mode' }).click()
+    await page.getByRole('button', { name: 'Auto-rotate' }).click()
+    await page.goto(sitePath('/'))
+    await open(page)
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(checked(page)).toHaveAccessibleName('Grape')
+    await expect(page.getByRole('button', { name: 'Auto-rotate' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  test('auto-rotate steps every ~8s, stops when off, pauses while hidden', async ({ page }) => {
+    await page.clock.install()
+    await page.goto(sitePath('/'))
+    await open(page)
+    const rotate = page.getByRole('button', { name: 'Auto-rotate' })
+    await expect(rotate).toHaveAttribute('aria-pressed', 'false')
+    await page.clock.runFor(20_000)
+    expect(await palette(page)).toBeNull()
+
+    await rotate.click()
+    await page.clock.runFor(8_100)
+    expect(await palette(page)).toBe('ember')
+    await page.clock.runFor(8_000)
+    expect(await palette(page)).toBe('forest')
+
+    await page.evaluate(() => Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }))
+    await page.clock.runFor(24_000)
+    expect(await palette(page)).toBe('forest')
+    await page.evaluate(() => delete document.hidden)
+    await page.clock.runFor(8_100)
+    expect(await palette(page)).toBe('grape')
+
+    await rotate.click()
+    await page.clock.runFor(24_000)
+    expect(await palette(page)).toBe('grape')
+  })
+
+  test.describe('reduced motion', () => {
+    test.use({ reducedMotion: 'reduce' })
+    test('auto-rotate is disabled with a reason and never steps', async ({ page }) => {
+      await page.addInitScript(() => localStorage.setItem('autorotate', '1'))
+      await page.clock.install()
+      await page.goto(sitePath('/'))
+      await open(page)
+      const rotate = page.getByRole('button', { name: 'Auto-rotate' })
+      await expect(rotate).toBeDisabled()
+      await expect(rotate).toHaveAttribute('aria-pressed', 'false')
+      await expect(rotate).toHaveAccessibleDescription(/reduced motion/)
+      await page.clock.runFor(30_000)
+      expect(await palette(page)).toBeNull()
+    })
+  })
+
+  test('Esc closes and returns focus to the gear; focus moves in on open', async ({ page }) => {
+    await page.goto(sitePath('/'))
+    await gear(page).focus()
+    await page.keyboard.press('Enter')
+    await expect(gear(page)).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByRole('button', { name: 'Dark mode' })).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(gear(page)).toHaveAttribute('aria-expanded', 'false')
+    await expect(gear(page)).toBeFocused()
+  })
+
+  test('tapping outside closes the panel', async ({ page }) => {
+    await page.goto(sitePath('/'))
+    await open(page)
+    await page.mouse.click(5, 800)
+    await expect(gear(page)).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  test('Tab out of the panel closes it; tap outside returns focus to the gear', async ({ page }) => {
+    await page.goto(sitePath('/'))
+    await open(page)
+    await page.getByRole('button', { name: 'Auto-rotate' }).focus()
+    await page.keyboard.press('Tab')
+    await expect(gear(page)).toHaveAttribute('aria-expanded', 'false')
+    await open(page)
+    await page.mouse.click(5, 800)
+    await expect(gear(page)).toHaveAttribute('aria-expanded', 'false')
+    await expect(gear(page)).toBeFocused()
+  })
+
+  test('stored palette applies before app JS runs (no flash)', async ({ page }) => {
+    await page.route('**/assets/main-*.js', (route) => route.abort())
+    await page.addInitScript(() => localStorage.setItem('palette', 'ember'))
+    await page.goto(sitePath('/'))
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'ember')
+    await expect(page.locator('#home')).toBeEmpty()
+  })
+
+  test('top bar controls are 44px+ and nothing scrolls sideways at 320px', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 640 })
-    await page.goto(sitePath('/') + '?palette=ember')
-    const bar = page.locator('.view-switch')
-    const h = await bar.locator('button, a').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
-    expect(new Set(h).size).toBe(1)
+    await page.goto(sitePath('/'))
+    await open(page)
+    const h = await page.locator('.view-switch > button, .view-switch > a').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
+    expect(Math.min(...h)).toBeGreaterThanOrEqual(44)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    const fits = await page.locator('.palette-picker').evaluate((el) => el.getBoundingClientRect().right <= innerWidth - 16)
-    expect(fits).toBe(true)
+    const g = await gear(page).boundingBox()
+    const link = await page.locator('.view-switch').getByRole('link', { name: 'Game version →' }).boundingBox()
+    expect(link.x - (g.x + g.width)).toBeLessThan(16)
+    const box = await page.locator('#settings-panel').boundingBox()
+    expect(box.x).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width).toBeLessThanOrEqual(320)
   })
 
   test('h1 does not break mid-word at 320px', async ({ page }) => {
