@@ -3,6 +3,7 @@ import content from '../content.json'
 
 const API = 'https://api.github.com'
 const MAX_ITEMS = 5
+const MAX_PAGES = 3
 const CACHE_KEY = 'recent-work-v1'
 const CACHE_MS = 10 * 60 * 1000
 
@@ -41,8 +42,13 @@ function isFeedMerge(event, allowedRepos) {
 async function loadItems() {
   const { owner, repos } = content.feedRepos
   const allowed = new Set(repos.map((r) => `${owner}/${r}`.toLowerCase()))
-  const events = await getJson(`${API}/users/${owner}/events/public?per_page=100`)
-  const newest = events.filter((e) => isFeedMerge(e, allowed)).slice(0, MAX_ITEMS)
+  const found = []
+  for (let page = 1; page <= MAX_PAGES && found.length < MAX_ITEMS; page++) {
+    const events = await getJson(`${API}/users/${owner}/events/public?per_page=100&page=${page}`)
+    found.push(...events.filter((e) => isFeedMerge(e, allowed)))
+    if (events.length === 0) break
+  }
+  const newest = found.slice(0, MAX_ITEMS)
   return Promise.all(
     newest.map(async (e) => {
       const pr = await getJson(`${API}/repos/${e.repo.name}/pulls/${e.payload.number}`)

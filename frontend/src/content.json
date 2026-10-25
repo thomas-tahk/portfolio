@@ -4,7 +4,8 @@
   "about": {
     "name": "Thomas Tahk",
     "text": "I'm Thomas. I support ~80,000 students and staff at Albuquerque Public Schools through ServiceNow, and I build web apps end to end, AI-assisted. Before IT: localization PM in games, international logistics, and a microbiology degree from UC Berkeley. Bilingual English/Korean.",
-    "photo": "headshot.jpg"
+    "photo": "headshot.jpg",
+    "photoSmall": "headshot-small.jpg"
   },
   "skills": [
     {

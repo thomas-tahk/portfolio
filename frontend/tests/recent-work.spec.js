@@ -98,3 +98,39 @@ test('recent work is cached in sessionStorage so a reload makes no new requests'
   await expect(section(page)).toBeVisible()
   expect(requests).toBe(0)
 })
+
+function pagedFeed(pages) {
+  const requests = []
+  const handler = (route) => {
+    const page = Number(new URL(route.request().url()).searchParams.get('page') ?? 1)
+    requests.push(page)
+    const body = pages[page - 1]
+    return body === 'error' ? json(route, { message: 'boom' }, 500) : json(route, body ?? [])
+  }
+  return { requests, handler }
+}
+
+test('recent work reads page 2 when page 1 has fewer than 5 merges', async ({ page }) => {
+  const feed = pagedFeed([[mergedEvent(1), mergedEvent(2)], [mergedEvent(3), mergedEvent(4), mergedEvent(5)]])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(5)
+  expect(feed.requests).toEqual([1, 2])
+})
+
+test('recent work makes one events request when page 1 has 5 merges', async ({ page }) => {
+  const feed = pagedFeed([[1, 2, 3, 4, 5].map((i) => mergedEvent(i))])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(5)
+  expect(feed.requests).toEqual([1])
+})
+
+test('recent work is hidden when page 2 fails, even if page 1 had merges', async ({ page }) => {
+  const feed = pagedFeed([[mergedEvent(1)], 'error'])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.getByRole('heading', { name: 'Experience' })).toBeVisible()
+  await expect(section(page)).toHaveCount(0)
+  expect(feed.requests).toEqual([1, 2])
+})
