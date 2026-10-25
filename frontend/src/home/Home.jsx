@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import content from '../content.json'
 import RecentWork from './RecentWork'
-import ThemeToggle from './ThemeToggle'
-import PalettePicker from './PalettePicker'
-import { isPreview } from './isPreview'
+import Settings from './Settings'
 
 const BASE = import.meta.env.BASE_URL
 const visibleProjects = content.projects.filter((p) => !p.hidden)
@@ -112,8 +110,7 @@ export default function Home() {
         Skip to content
       </a>
       <nav className="view-switch" aria-label="Switch view">
-        {isPreview() && <PalettePicker />}
-        <ThemeToggle />
+        <Settings />
         <a className="btn solid" href={`${BASE}play/`}>
           Game version →
         </a>

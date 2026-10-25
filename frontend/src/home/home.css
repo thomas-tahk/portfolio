@@ -23,7 +23,7 @@
 }
 
 /* Palette directions (issue 58). Applied via data-palette on <html>; the
-   picker only exists on preview builds. No data-palette = the original above. */
+   picker lives in the settings panel. No data-palette = the original above. */
 :root[data-palette='ember'] {
   --bg: #fffaf5;
   --text: #1a0f0a;
@@ -99,7 +99,7 @@
 
 .theme-toggle {
   min-width: 44px;
-  min-height: 2.75rem;
+  height: 2.75rem;
   padding: 0 0.75rem;
   font: inherit;
   font-weight: 600;
@@ -296,32 +296,90 @@ button:focus-visible {
   align-items: center;
   gap: 0.5rem;
 }
-.view-switch .btn,
-.theme-toggle {
+.view-switch .btn {
   height: 2.75rem;
   padding-top: 0;
   padding-bottom: 0;
   display: inline-flex;
   align-items: center;
 }
-.palette-picker {
-  max-width: 100%;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  margin-right: auto;
+.view-switch {
+  position: relative;
 }
-.palette-picker select {
-  flex: 1;
-  min-width: 0;
-  min-height: 2.75rem;
-  padding: 0 0.5rem;
-  font: inherit;
+.gear {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-right: auto;
+  font-size: 1.5rem;
+  line-height: 1;
   color: var(--text);
   background: var(--bg);
   border: 2px solid var(--line);
   border-radius: 0.5rem;
+  cursor: pointer;
+}
+.settings-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 1rem;
+  z-index: 10;
+  width: min(18rem, calc(100vw - 2rem));
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+}
+.settings-panel[hidden] {
+  display: none;
+}
+.settings-panel .theme-toggle {
+  justify-content: space-between;
+}
+.theme-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.palette-options {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.palette-options legend {
+  padding: 0;
+  font-weight: 600;
+}
+.palette-options label {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.palette-options input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--accent);
+}
+.settings-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+:root[data-fade],
+:root[data-fade] * {
+  transition:
+    background-color 0.6s,
+    color 0.6s,
+    border-color 0.6s;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-fade],
+  :root[data-fade] * {
+    transition: none;
+  }
 }
 
 .game-link {
