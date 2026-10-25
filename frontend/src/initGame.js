@@ -116,17 +116,12 @@ export default async function initGame() {
     // Load Gmail logo sprite
     k.loadSprite("gmail-logo", `${BASE}logos/gmail-logo.svg`);
 
-    // Social logo + label + collision circle, one column per link
-    function addSocial(key, label, logoSprite, logoScale, tag) {
+    const socialParts = [] // circle + logo per social, exposed to tests
+    // Social circle with its logo centred ON it (the logo reads as the button) and the label just above
+    function addSocial(key, label, logoSprite, tag) {
         const s = L.socials[key]
-        k.add([
-            k.sprite(logoSprite),
-            k.scale(logoScale),
-            k.anchor("center"),
-            k.pos(s.x, s.y + L.socialLogoDy),
-        ])
         addShadowedText(label, s.x, s.y + L.socialLabelDy, L.socialLabelFontSize)
-        return k.add([
+        const circle = k.add([
             k.circle(L.socialRadius),
             k.anchor("center"),
             k.area(),
@@ -135,11 +130,15 @@ export default async function initGame() {
             k.outline(L.outlineWidth, black),
             tag
         ])
+        const logo = circle.add([k.sprite(logoSprite), k.pos(0, 0), k.scale(1), k.anchor("center")])
+        k.onLoad(() => { logo.scale = k.vec2(L.socialLogoSize / Math.max(logo.width, logo.height)) }) // sprite sizes are only known once loaded
+        socialParts.push({ key, circle, logo })
+        return circle
     }
 
-    const githubCircle = addSocial("github", "GitHub", "github-logo", L.socialLogoScale.github, "github-social")
-    const linkedinCircle = addSocial("linkedin", "LinkedIn", "linkedin-logo", L.socialLogoScale.linkedin, "linkedin-social")
-    const gmailCircle = addSocial("gmail", "Gmail", "gmail-logo", L.socialLogoScale.gmail, "gmail-social")
+    const githubCircle = addSocial("github", "GitHub", "github-logo", "github-social")
+    const linkedinCircle = addSocial("linkedin", "LinkedIn", "linkedin-logo", "linkedin-social")
+    const gmailCircle = addSocial("gmail", "Gmail", "gmail-logo", "gmail-social")
 
     // Add collision detection for social circles
     githubCircle.onCollide("player", () => {
@@ -277,6 +276,10 @@ export default async function initGame() {
         window.__player = player
         window.__layout = { map: L.map, zoneSize: L.sectionSize, zones: getZones(), maxTextWidth: Math.max(...textWidths) }
         window.__cam = () => ({ x: k.camPos().x, y: k.camPos().y })
+        window.__socials = () => socialParts.map(({ key, circle, logo }) => ({
+            key, circle: { x: circle.pos.x, y: circle.pos.y, r: L.socialRadius },
+            logo: { x: circle.pos.x + logo.pos.x, y: circle.pos.y + logo.pos.y, w: logo.width * logo.scale.x, h: logo.height * logo.scale.y },
+        }))
         window.__iconObjects = () => techLogos
         window.__icons = () => techLogos.map((l) => ({ name: l.logoName, x: l.pos.x, y: l.pos.y, startX: l.start.x, startY: l.start.y }))
     }
