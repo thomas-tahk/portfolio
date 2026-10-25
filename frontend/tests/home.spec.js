@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 import { readFileSync } from 'node:fs'
 import { sitePath } from './standardChecks.js'
 
@@ -64,7 +64,7 @@ test.describe('theme toggle', () => {
     expect(await axe()).toEqual([])
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/i57-light.png` })
 
-    const toggle = page.getByRole('button', { name: 'Dark theme' })
+    const toggle = page.getByRole('button', { name: 'Dark mode' })
     await expect(toggle).toHaveAttribute('aria-pressed', 'false')
     await toggle.click()
     await expect(toggle).toHaveAttribute('aria-pressed', 'true')
@@ -76,8 +76,8 @@ test.describe('theme toggle', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
     expect(await bg(page)).toBe('rgb(10, 14, 26)')
 
-    await expect(page.getByRole('button', { name: 'Dark theme' })).toHaveAttribute('aria-pressed', 'true')
-    await page.getByRole('button', { name: 'Dark theme' }).click()
+    await expect(page.getByRole('button', { name: 'Dark mode' })).toHaveAttribute('aria-pressed', 'true')
+    await page.getByRole('button', { name: 'Dark mode' }).click()
     expect(await bg(page)).toBe('rgb(255, 255, 255)')
   })
 
@@ -90,11 +90,9 @@ test.describe('theme toggle', () => {
     expect(await bg(page)).toBe('rgb(10, 14, 26)')
   })
 
-  test('default follows system dark', async ({ browser }) => {
-    const ctx = await browser.newContext({ colorScheme: 'dark' })
-    const page = await ctx.newPage()
+  test('default follows system dark', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto(sitePath('/'))
     expect(await bg(page)).toBe('rgb(10, 14, 26)')
-    await ctx.close()
   })
 })
