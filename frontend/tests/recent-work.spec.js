@@ -126,8 +126,16 @@ test('recent work makes one events request when page 1 has 5 merges', async ({ p
   expect(feed.requests).toEqual([1])
 })
 
-test('recent work is hidden when page 2 fails, even if page 1 had merges', async ({ page }) => {
+test('recent work shows page 1 merges when page 2 fails', async ({ page }) => {
   const feed = pagedFeed([[mergedEvent(1)], 'error'])
+  await page.route(EVENTS_URL, feed.handler)
+  await page.goto(sitePath('/'))
+  await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(1)
+  expect(feed.requests).toEqual([1, 2])
+})
+
+test('recent work is hidden when page 2 fails and page 1 had no merges', async ({ page }) => {
+  const feed = pagedFeed([[mergedEvent(1, 'not-in-feed')], 'error'])
   await page.route(EVENTS_URL, feed.handler)
   await page.goto(sitePath('/'))
   await expect(page.getByRole('heading', { name: 'Experience' })).toBeVisible()

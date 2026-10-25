@@ -44,7 +44,14 @@ async function loadItems() {
   const allowed = new Set(repos.map((r) => `${owner}/${r}`.toLowerCase()))
   const found = []
   for (let page = 1; page <= MAX_PAGES && found.length < MAX_ITEMS; page++) {
-    const events = await getJson(`${API}/users/${owner}/events/public?per_page=100&page=${page}`)
+    let events
+    try {
+      events = await getJson(`${API}/users/${owner}/events/public?per_page=100&page=${page}`)
+    } catch (error) {
+      // A later page failing keeps what earlier pages found; nothing found hides the section.
+      if (found.length === 0) throw error
+      break
+    }
     found.push(...events.filter((e) => isFeedMerge(e, allowed)))
     if (events.length === 0) break
   }
