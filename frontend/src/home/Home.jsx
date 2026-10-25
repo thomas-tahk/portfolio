@@ -110,7 +110,7 @@ export default function Home() {
       </a>
       <nav className="view-switch" aria-label="Switch view">
         <a className="btn solid" href={`${BASE}play/`}>
-          Play the game version →
+          Game version →
         </a>
       </nav>
       <main id="main">
@@ -155,7 +155,7 @@ export default function Home() {
 
         <p className="game-link">
           <a className="btn solid" href={`${BASE}play/`}>
-            Play the game version →
+            Game version →
           </a>
         </p>
       </main>
