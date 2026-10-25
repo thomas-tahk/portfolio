@@ -64,7 +64,10 @@ test.describe('theme toggle', () => {
     expect(await axe()).toEqual([])
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/i57-light.png` })
 
-    await page.getByRole('button', { name: 'Switch to dark theme' }).click()
+    const toggle = page.getByRole('button', { name: 'Dark theme' })
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    await toggle.click()
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true')
     expect(await bg(page)).toBe('rgb(10, 14, 26)')
     expect(await axe()).toEqual([])
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/i57-dark.png` })
@@ -73,8 +76,18 @@ test.describe('theme toggle', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
     expect(await bg(page)).toBe('rgb(10, 14, 26)')
 
-    await page.getByRole('button', { name: 'Switch to light theme' }).click()
+    await expect(page.getByRole('button', { name: 'Dark theme' })).toHaveAttribute('aria-pressed', 'true')
+    await page.getByRole('button', { name: 'Dark theme' }).click()
     expect(await bg(page)).toBe('rgb(255, 255, 255)')
+  })
+
+  test('stored theme applies before app JS runs (no flash)', async ({ page }) => {
+    await page.route('**/assets/main-*.js', (route) => route.abort())
+    await page.addInitScript(() => localStorage.setItem('theme', 'dark'))
+    await page.goto(sitePath('/'))
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(page.locator('#home')).toBeEmpty()
+    expect(await bg(page)).toBe('rgb(10, 14, 26)')
   })
 
   test('default follows system dark', async ({ browser }) => {

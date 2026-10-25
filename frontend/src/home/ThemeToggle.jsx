@@ -17,8 +17,8 @@ export default function ThemeToggle() {
     setTheme(next)
   }
   return (
-    <button type="button" className="theme-toggle" onClick={toggle} aria-label={`Switch to ${next} theme`}>
-      {theme === 'dark' ? 'Light' : 'Dark'}
+    <button type="button" className="theme-toggle" onClick={toggle} aria-label="Dark theme" aria-pressed={theme === 'dark'}>
+      Dark
     </button>
   )
 }
