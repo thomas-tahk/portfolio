@@ -4,6 +4,24 @@ import { sitePath } from './standardChecks.js'
 
 const content = JSON.parse(readFileSync(new URL('../src/content.json', import.meta.url)))
 
+const SHOTS = process.env.SHOT_DIR // optional: save screenshots for review
+for (const size of [{ width: 390, height: 844 }, { width: 1280, height: 800 }]) {
+  test(`view switch works both ways at ${size.width}x${size.height}`, async ({ page }) => {
+    await page.setViewportSize(size)
+    await page.goto(sitePath('/'))
+    if (SHOTS && size.width === 390) await page.screenshot({ path: `${SHOTS}/i56-home.png` })
+    const top = page.locator('.view-switch').getByRole('link', { name: 'Game version →' })
+    await expect(top).toBeInViewport()
+    await top.click()
+    await expect(page).toHaveURL(/\/play\/$/)
+    await expect(page.locator('canvas')).toBeVisible()
+    if (SHOTS && size.width === 390) await page.screenshot({ path: `${SHOTS}/i56-play.png` })
+    await page.getByRole('link', { name: '← Plain version' }).click()
+    await expect(page).toHaveURL(sitePath('/'))
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  })
+}
+
 test('front page lists visible projects, no hidden ones, and links to the game', async ({ page }) => {
   await page.goto(sitePath('/'))
   const main = page.locator('main')
@@ -22,7 +40,7 @@ test('front page lists visible projects, no hidden ones, and links to the game',
 
   for (const e of content.experience) await expect(main).toContainText(e.company)
 
-  const game = page.getByRole('link', { name: /Play the game version/ })
+  const game = page.locator('.game-link').getByRole('link', { name: /Game version/ })
   await expect(game).toHaveAttribute('href', sitePath('/play/'))
   await game.click()
   await expect(page).toHaveURL(new RegExp(sitePath('/play/') + '$'))
