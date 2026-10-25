@@ -1,4 +1,5 @@
-// Preview builds only: path contains /preview/ or the URL has ?palette=.
+// The inline script in index.html decides once (path has /preview/ or URL has
+// ?palette=) and marks <html data-preview>.
 export function isPreview() {
-  return location.pathname.includes('/preview/') || new URLSearchParams(location.search).has('palette')
+  return document.documentElement.hasAttribute('data-preview')
 }

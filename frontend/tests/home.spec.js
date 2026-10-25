@@ -116,10 +116,21 @@ test.describe('theme toggle', () => {
 
 test.describe('palette picker (preview only)', () => {
   test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
-  const SHOTS = process.env.SHOT_DIR
+  // The suite builds one base, so serve the home page at <base>preview/ too.
+  const gotoPreview = async (page) => {
+    await page.route('**/preview/', async (route) => {
+      const url = new URL(sitePath('/'), route.request().url()).href
+      await route.fulfill({ response: await route.fetch({ url }) })
+    })
+    await page.goto(sitePath('/preview/'))
+  }
 
-  test('no picker without preview path or ?palette=', async ({ page }) => {
+  test('no picker without preview path or ?palette=, and a stored palette is ignored', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('palette', 'ember'))
     await page.goto(sitePath('/'))
+    await expect(page.locator('#home')).not.toBeEmpty()
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(255, 255, 255)')
+    await expect(page.locator('html')).not.toHaveAttribute('data-preview', /.*/)
     await expect(page.getByRole('combobox', { name: 'Palette' })).toHaveCount(0)
     await expect(page.locator('html')).not.toHaveAttribute('data-palette', /.+/)
   })
@@ -140,8 +151,41 @@ test.describe('palette picker (preview only)', () => {
         if (SHOTS) await page.screenshot({ path: `${SHOTS}/i58-${id}-${theme}.png`, fullPage: true })
       }
     }
-    await page.reload()
+    await gotoPreview(page)
     await expect(page.locator('html')).toHaveAttribute('data-palette', 'cherry')
+  })
+
+  test('every picker option survives a query-less reload (inline list matches picker)', async ({ page }) => {
+    await gotoPreview(page)
+    const picker = page.getByRole('combobox', { name: 'Palette' })
+    await expect(picker).toBeVisible()
+    const ids = await picker.locator('option').evaluateAll((os) => os.map((o) => o.value))
+    expect(ids).toEqual(['', 'ember', 'forest', 'grape', 'cherry'])
+    for (const id of ids) {
+      await picker.selectOption(id)
+      await gotoPreview(page)
+      if (id) await expect(page.locator('html')).toHaveAttribute('data-palette', id)
+      else await expect(page.locator('html')).not.toHaveAttribute('data-palette', /.+/)
+    }
+  })
+
+  test('?palette=Ember (any case) shows the picker and applies the palette', async ({ page }) => {
+    await page.goto(sitePath('/') + '?palette=Ember')
+    await expect(page.getByRole('combobox', { name: 'Palette' })).toHaveValue('ember')
+    await expect(page.locator('html')).toHaveAttribute('data-palette', 'ember')
+    await page.goto(sitePath('/') + '?palette=')
+    await expect(page.getByRole('combobox', { name: 'Palette' })).toBeVisible()
+  })
+
+  test('top bar controls share one height and the picker fits at 320px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 })
+    await page.goto(sitePath('/') + '?palette=ember')
+    const bar = page.locator('.view-switch')
+    const h = await bar.locator('button, a').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))
+    expect(new Set(h).size).toBe(1)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    const fits = await page.locator('.palette-picker').evaluate((el) => el.getBoundingClientRect().right <= innerWidth - 16)
+    expect(fits).toBe(true)
   })
 
   test('h1 does not break mid-word at 320px', async ({ page }) => {

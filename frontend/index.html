@@ -14,9 +14,10 @@
         }
         document.documentElement.setAttribute('data-theme', t)
         // Palette previews: only on preview builds or with ?palette= (never production).
-        var q = /[?&]palette=([a-z]+)/.exec(location.search)
+        var q = /[?&]palette=([^&]*)/i.exec(location.search)
         if (location.pathname.indexOf('/preview/') > -1 || q) {
-          var p = q && q[1]
+          document.documentElement.setAttribute('data-preview', '')
+          var p = q && q[1].toLowerCase()
           if (!p) { try { p = localStorage.getItem('palette') } catch (e) {} }
           if (['ember', 'forest', 'grape', 'cherry'].indexOf(p) > -1) {
             document.documentElement.setAttribute('data-palette', p)
