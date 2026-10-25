@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 import { sitePath, standardChecks } from './standardChecks.js'
 
 const EVENTS_URL = '**/api.github.com/users/thomas-tahk/events/public*'

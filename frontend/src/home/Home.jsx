@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import content from '../content.json'
 import RecentWork from './RecentWork'
+import ThemeToggle from './ThemeToggle'
 
 const BASE = import.meta.env.BASE_URL
 const visibleProjects = content.projects.filter((p) => !p.hidden)
@@ -115,6 +116,7 @@ export default function Home() {
       </nav>
       <main id="main">
         <header>
+          <ThemeToggle />
           <h1>{content.about.name}</h1>
           <p className="headline">{content.headline}</p>
         </header>

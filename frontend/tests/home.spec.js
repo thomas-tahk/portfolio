@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures.js'
 import { readFileSync } from 'node:fs'
 import { sitePath } from './standardChecks.js'
 
@@ -64,4 +64,53 @@ test('copy email button copies the address', async ({ page, context }) => {
   await page.getByRole('button', { name: 'Copy email' }).click()
   await expect(page.getByRole('status')).toContainText('copied')
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(content.contact.email)
+})
+
+test.describe('theme toggle', () => {
+  test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
+  const bg = (page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+  const SHOTS = process.env.SHOT_DIR
+
+  test('toggles, persists across reload, axe clean in both themes', async ({ page }) => {
+    const AxeBuilder = (await import('@axe-core/playwright')).default
+    await page.goto(sitePath('/'))
+    expect(await bg(page)).toBe('rgb(255, 255, 255)')
+    const axe = async () => {
+      const { violations } = await new AxeBuilder({ page }).analyze()
+      return violations.filter((v) => ['serious', 'critical'].includes(v.impact)).map((v) => v.id)
+    }
+    expect(await axe()).toEqual([])
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/i57-light.png` })
+
+    const toggle = page.getByRole('button', { name: 'Dark mode' })
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    await toggle.click()
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(await bg(page)).toBe('rgb(10, 14, 26)')
+    expect(await axe()).toEqual([])
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/i57-dark.png` })
+
+    await page.reload()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    expect(await bg(page)).toBe('rgb(10, 14, 26)')
+
+    await expect(page.getByRole('button', { name: 'Dark mode' })).toHaveAttribute('aria-pressed', 'true')
+    await page.getByRole('button', { name: 'Dark mode' }).click()
+    expect(await bg(page)).toBe('rgb(255, 255, 255)')
+  })
+
+  test('stored theme applies before app JS runs (no flash)', async ({ page }) => {
+    await page.route('**/assets/main-*.js', (route) => route.abort())
+    await page.addInitScript(() => localStorage.setItem('theme', 'dark'))
+    await page.goto(sitePath('/'))
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(page.locator('#home')).toBeEmpty()
+    expect(await bg(page)).toBe('rgb(10, 14, 26)')
+  })
+
+  test('default follows system dark', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.goto(sitePath('/'))
+    expect(await bg(page)).toBe('rgb(10, 14, 26)')
+  })
 })

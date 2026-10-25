@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: #ffffff;
   --text: #0d1117;
   --muted: #3d4655;
@@ -9,15 +9,62 @@
   --line: #0d1117;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0a0e1a;
-    --text: #f5f7fb;
-    --muted: #c3cbdb;
-    --accent: #ffd400;
-    --on-accent: #0a0e1a;
-    --card: #141b33;
-    --line: #f5f7fb;
+/* A palette is one set of custom properties per theme. The inline script in
+   index.html always sets data-theme on <html> (stored choice, else system). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0a0e1a;
+  --text: #f5f7fb;
+  --muted: #c3cbdb;
+  --accent: #ffd400;
+  --on-accent: #0a0e1a;
+  --card: #141b33;
+  --line: #f5f7fb;
+}
+
+.theme-toggle {
+  float: right;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.theme-track {
+  display: inline-block;
+  width: 2.5rem;
+  height: 1.5rem;
+  padding: 2px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  box-sizing: border-box;
+}
+.theme-knob {
+  display: block;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: var(--line);
+  transition: transform 0.15s;
+}
+.theme-toggle[aria-pressed='true'] .theme-track {
+  background: var(--accent);
+}
+.theme-toggle[aria-pressed='true'] .theme-knob {
+  transform: translateX(1rem);
+  background: var(--on-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-knob {
+    transition: none;
   }
 }
 
