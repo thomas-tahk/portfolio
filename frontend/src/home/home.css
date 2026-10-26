@@ -386,6 +386,7 @@ button:focus-visible {
 }
 
 .qr-dialog {
+  box-sizing: border-box;
   width: min(32rem, calc(100vw - 2rem));
   padding: 1rem;
   text-align: center;
@@ -399,10 +400,14 @@ button:focus-visible {
 }
 .qr-image {
   display: block;
-  width: min(100%, 60vh, 28rem);
-  min-width: 15rem;
+  width: min(100%, 60vh, calc(100vh - 11rem), 28rem);
   aspect-ratio: 1;
   margin: 0 auto;
+}
+@media (orientation: portrait) {
+  .qr-image {
+    min-width: 15rem;
+  }
 }
 .qr-url {
   margin: 0.75rem 0;
