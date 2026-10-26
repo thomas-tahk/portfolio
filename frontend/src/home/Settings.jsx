@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 const PALETTES = [
-  { id: '', label: 'Current' },
+  { id: '', label: 'Royal' },
   { id: 'ember', label: 'Ember' },
   { id: 'forest', label: 'Forest' },
   { id: 'grape', label: 'Grape' },
