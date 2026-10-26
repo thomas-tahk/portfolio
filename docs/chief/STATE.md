@@ -6,5 +6,5 @@ Done: M2 incl. phone-check fixes; his answers: default palette Royal, wording ke
 Next action: wait for his pick among 4 mockups (A Arcade Night, B Blueprint, C Overworld, D Ice Rink) at https://claude.ai/artifact/CFMtyBfrtE7MWHDCgQkKVc, then plan redesign issues
 Waiting on him: mockup pick for #40 (+ confirm vision done-gate)
 Open questions: docs/questions/M2.md (closed milestone)
-Agent notes: cd into ~/Projects/portfolio before worktree dispatch; PW_PORT per agent; tests stub GitHub API via tests/fixtures.js; squash-merge with --subject/--body to keep agent trailers out
+Agent notes: open the milestone PR to main the moment the m* branch is created (Checks only run on PRs since #75); cd into ~/Projects/portfolio before worktree dispatch; PW_PORT per agent; tests stub GitHub API via tests/fixtures.js; squash-merge with --subject/--body to keep agent trailers out
 Updated: 2026-10-25
