@@ -375,6 +375,19 @@ test.describe('QR code dialog', () => {
     })
   }
 
+  test('qrcode loads only on tap, and a failed load still shows the URL', async ({ page }) => {
+    const loaded = []
+    page.on('request', (r) => /assets\/browser-.*\.js/.test(r.url()) && loaded.push(r.url()))
+    await page.route('**/assets/browser-*.js', (route) => route.abort())
+    await page.goto(sitePath('/'))
+    expect(loaded).toEqual([])
+    await openQr(page)
+    const dialog = page.getByRole('dialog')
+    await expect(dialog.getByRole('alert')).toContainText('Could not make the QR code')
+    await expect(dialog.locator('.qr-url')).toHaveText(page.url())
+    await expect(dialog.getByRole('img')).toHaveCount(0)
+  })
+
   test('Esc and the close button dismiss it and focus returns to the opener', async ({ page }) => {
     await page.goto(sitePath('/'))
     await openQr(page)
