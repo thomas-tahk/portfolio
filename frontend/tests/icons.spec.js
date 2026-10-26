@@ -16,7 +16,7 @@ const KICKED = 2
 async function standBesideFirstIcon(page) {
   const first = (await icons(page))[KICKED]
   await page.evaluate(({ x, y }) => { window.__player.pos.x = x + 90; window.__player.pos.y = y }, { x: first.x, y: first.y })
-  await page.waitForTimeout(200)
+  await page.waitForFunction(() => Math.hypot(window.__cam().x - window.__player.pos.x, window.__cam().y - window.__player.pos.y) < 5)
   return first
 }
 
@@ -64,8 +64,7 @@ test('/play/ closing the Skills popup puts every icon back', async ({ page }) =>
 
   await page.evaluate(() => window.__openModal('skills', true))
   await page.evaluate(() => window.__openModal('skills', false))
-  await page.waitForTimeout(200)
-  for (const i of await icons(page)) expect([i.x, i.y], `${i.name} back at start`).toEqual([i.startX, i.startY])
+  await expect.poll(async () => (await icons(page)).every((i) => i.x === i.startX && i.y === i.startY), { message: 'icons back at start' }).toBe(true)
 })
 
 test.describe('phone', () => {

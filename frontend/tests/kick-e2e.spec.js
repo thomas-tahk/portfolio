@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test'
 import { sitePath } from './standardChecks.js'
 
-// End to end, the way a player does it: walk with real input, (optionally) visit Skills and close its popup, then kick with
-// a real Space / a real touch tap. The test hooks are only used to READ state; they never move the player or fire a kick.
+// End to end, the way a player does it: real input for the last stretch of the walk, (optionally) visit Skills and close its
+// popup, then kick with a real Space / a real touch tap. The test hooks READ state and never fire a kick. The one hook that
+// writes is `teleport` (sets the player's position), used to skip long legs: see the comment above it.
 const KICKED = 2 // top-right icon of the 3x3 cluster
 const icon = (page) => page.evaluate((i) => window.__icons()[i], KICKED)
 const playerPos = (page) => page.evaluate(() => ({ x: window.__player.pos.x, y: window.__player.pos.y }))
@@ -26,9 +27,10 @@ async function expectKicked(page, before, how) {
   }, { message: `icon moved after ${how}`, timeout: 10_000 }).toBeGreaterThan(20)
 }
 
-// The game clamps its per-frame time step, so on a slow runner (CI renders ~7 fps) the world runs slower than the wall clock and
-// long walks blow the test timeout. Tests therefore teleport to just short of each leg (a test hook, like __player itself)
-// and use real input only for the last few hundred units, which is the part that matters.
+// Long walks are slow and fragile on a slow runner (CI renders ~7 fps): remote-driving the player over CDP means hundreds of
+// round trips in a loop, and the 30s test timeout kills the page mid-loop ("cdpSession.send: Target ... has been closed").
+// So tests teleport to just short of each leg and use real input only for the last few hundred units. (Kaplay also clamps dt
+// at 0.25s, which slows the world below ~4 fps, but that is not what failed.) Full-length real walks are no longer covered.
 // It also waits for the camera to catch up: a finger aims relative to the screen centre, which is the camera, not the player.
 async function teleport(page, { x, y }) {
   await page.evaluate(([px, py]) => { window.__player.pos.x = px; window.__player.pos.y = py }, [x, y])
@@ -78,7 +80,6 @@ async function fingerWalkRight(page, cdp) {
   } finally {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   }
-  await page.waitForTimeout(500) // a touchend after a long hold is not a tap; let it settle
 }
 
 // A short tap: both events sent without awaiting in between (each CDP round trip costs ~100ms, which would make it a hold).
@@ -92,9 +93,9 @@ async function fingerTap(cdp) {
 
 test('/play/ walk to the icons with the keyboard, press Space: the icon is kicked', async ({ page }) => {
   await openGame(page)
-  const before = await icon(page)
   await teleport(page, { x: APPROACH_START.x + 50, y: APPROACH_START.y - 50 })
   await approachIcon(page)
+  const before = await icon(page) // after the approach: walking up can nudge the icon, which must not count as the kick
   await page.keyboard.press('Space')
   await expectKicked(page, before, 'real Space')
 })
@@ -115,13 +116,13 @@ test('/play/ visit Skills, click Close, walk to the icons, press Space: the icon
 test.describe('phone', () => {
   test.use({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true })
 
-  test('/play/ walk to the icons with a finger, tap the canvas: the icon is kicked', async ({ page }) => {
+  test('/play/ a tap after a long finger hold still kicks the icon', async ({ page }) => {
     await openGame(page)
-    const before = await icon(page)
     const cdp = await page.context().newCDPSession(page)
     await teleport(page, { x: BESIDE_ICON.x, y: BESIDE_ICON.y })
     await fingerWalkRight(page, cdp)
     await teleport(page, BESIDE_ICON)
+    const before = await icon(page)
     await fingerTap(cdp)
     await expectKicked(page, before, 'real tap')
   })
