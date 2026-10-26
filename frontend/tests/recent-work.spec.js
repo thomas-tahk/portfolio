@@ -122,7 +122,7 @@ test('recent work reads page 2 when page 1 has fewer than 5 merges', async ({ pa
   await page.route(EVENTS_URL, feed.handler)
   await page.goto(sitePath('/'))
   await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(5)
-  expect(feed.requests).toEqual([1, 2])
+  await expect.poll(() => feed.requests).toEqual([1, 2])
 })
 
 test('recent work makes one events request when page 1 has 5 merges', async ({ page }) => {
@@ -130,7 +130,7 @@ test('recent work makes one events request when page 1 has 5 merges', async ({ p
   await page.route(EVENTS_URL, feed.handler)
   await page.goto(sitePath('/'))
   await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(5)
-  expect(feed.requests).toEqual([1])
+  await expect.poll(() => feed.requests).toEqual([1])
 })
 
 test('recent work shows page 1 merges when page 2 fails', async ({ page }) => {
@@ -138,7 +138,7 @@ test('recent work shows page 1 merges when page 2 fails', async ({ page }) => {
   await page.route(EVENTS_URL, feed.handler)
   await page.goto(sitePath('/'))
   await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(1)
-  expect(feed.requests).toEqual([1, 2])
+  await expect.poll(() => feed.requests).toEqual([1, 2])
 })
 
 test('recent work is hidden when page 2 fails and page 1 had no merges', async ({ page }) => {
@@ -147,7 +147,7 @@ test('recent work is hidden when page 2 fails and page 1 had no merges', async (
   await page.goto(sitePath('/'))
   await expect(page.getByRole('heading', { name: 'Experience' })).toBeVisible()
   await expect(section(page)).toHaveCount(0)
-  expect(feed.requests).toEqual([1, 2])
+  await expect.poll(() => feed.requests).toEqual([1, 2])
 })
 
 test('recent work stops after 3 pages when none hold merges', async ({ page }) => {
@@ -156,7 +156,7 @@ test('recent work stops after 3 pages when none hold merges', async ({ page }) =
   await page.goto(sitePath('/'))
   await expect(page.getByRole('heading', { name: 'Experience' })).toBeVisible()
   await expect(section(page)).toHaveCount(0)
-  expect(feed.requests).toEqual([1, 2, 3])
+  await expect.poll(() => feed.requests).toEqual([1, 2, 3])
 })
 
 test('recent work stops when a page comes back empty', async ({ page }) => {
@@ -164,7 +164,7 @@ test('recent work stops when a page comes back empty', async ({ page }) => {
   await page.route(EVENTS_URL, feed.handler)
   await page.goto(sitePath('/'))
   await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(1)
-  expect(feed.requests).toEqual([1, 2])
+  await expect.poll(() => feed.requests).toEqual([1, 2])
 })
 
 test('recent work stops when a page has fewer than 100 events', async ({ page }) => {
@@ -172,7 +172,7 @@ test('recent work stops when a page has fewer than 100 events', async ({ page })
   await page.route(EVENTS_URL, feed.handler)
   await page.goto(sitePath('/'))
   await expect(page.locator('section[aria-labelledby="recent-h"] li')).toHaveCount(1)
-  expect(feed.requests).toEqual([1])
+  await expect.poll(() => feed.requests).toEqual([1])
 })
 
 test('recent work lists an event once when pages overlap', async ({ page }) => {

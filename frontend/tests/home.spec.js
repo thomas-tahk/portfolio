@@ -375,6 +375,37 @@ test.describe('QR code dialog', () => {
     })
   }
 
+  for (const [width, height] of [
+    [568, 320],
+    [667, 375],
+  ]) {
+    test(`Close is inside the viewport with the QR open at ${width}x${height}`, async ({ page }) => {
+      await page.setViewportSize({ width, height })
+      await page.goto(sitePath('/'))
+      await openQr(page)
+      const dialog = page.getByRole('dialog')
+      await expect(dialog.getByRole('img')).toBeVisible()
+      const close = await dialog.getByRole('button', { name: 'Close' }).boundingBox()
+      expect(close.y).toBeGreaterThanOrEqual(0)
+      expect(close.y + close.height).toBeLessThanOrEqual(height)
+      expect(await dialog.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true)
+      const dir = process.env.SHOT_DIR
+      if (dir) await page.screenshot({ path: `${dir}/qr-${width}x${height}.png` })
+    })
+  }
+
+  test('QR stays at least 240px and does not overflow at 320px wide portrait', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 })
+    await page.goto(sitePath('/'))
+    await openQr(page)
+    const dialog = page.getByRole('dialog')
+    expect((await dialog.getByRole('img').boundingBox()).width).toBeGreaterThanOrEqual(240)
+    const box = await dialog.boundingBox()
+    expect(box.x).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width).toBeLessThanOrEqual(320)
+    expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true)
+  })
+
   test('qrcode loads only on tap, and a failed load still shows the URL', async ({ page }) => {
     const loaded = []
     page.on('request', (r) => /assets\/browser-.*\.js/.test(r.url()) && loaded.push(r.url()))
@@ -382,6 +413,7 @@ test.describe('QR code dialog', () => {
     await page.goto(sitePath('/'))
     expect(loaded).toEqual([])
     await openQr(page)
+    await expect.poll(() => loaded.length).toBeGreaterThan(0)
     const dialog = page.getByRole('dialog')
     await expect(dialog.getByRole('alert')).toContainText('Could not make the QR code')
     await expect(dialog.locator('.qr-url')).toHaveText(page.url())
