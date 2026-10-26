@@ -118,7 +118,7 @@ test.describe('theme toggle', () => {
 
 test.describe('settings panel', () => {
   test.use({ viewport: { width: 390, height: 844 }, colorScheme: 'light' })
-  const ORDER = ['Current', 'Ember', 'Forest', 'Grape', 'Cherry']
+  const ORDER = ['Royal', 'Ember', 'Forest', 'Grape', 'Cherry']
   const gear = (page) => page.getByRole('button', { name: 'Settings' })
   const open = async (page) => {
     await gear(page).click()
@@ -127,13 +127,13 @@ test.describe('settings panel', () => {
   const palette = (page) => page.locator('html').getAttribute('data-palette')
   const checked = (page) => page.getByRole('radio', { checked: true })
 
-  test('no palette attribute or panel on first visit; default is Current', async ({ page }) => {
+  test('no palette attribute or panel on first visit; default is Royal', async ({ page }) => {
     await page.goto(sitePath('/'))
     await expect(gear(page)).toHaveAttribute('aria-expanded', 'false')
     await expect(page.getByRole('button', { name: 'Next palette' })).toBeHidden()
     expect(await palette(page)).toBeNull()
     await open(page)
-    await expect(checked(page)).toHaveAccessibleName('Current')
+    await expect(checked(page)).toHaveAccessibleName('Royal')
   })
 
   for (const size of [{ width: 390, height: 844 }, { width: 1280, height: 800 }]) {
@@ -170,13 +170,13 @@ test.describe('settings panel', () => {
     }
   })
 
-  test('Next palette cycles Current > Ember > Forest > Grape > Cherry > Current', async ({ page }) => {
+  test('Next palette cycles Royal > Ember > Forest > Grape > Cherry > Royal', async ({ page }) => {
     await page.goto(sitePath('/'))
     await open(page)
-    for (const name of [...ORDER.slice(1), 'Current']) {
+    for (const name of [...ORDER.slice(1), 'Royal']) {
       await page.getByRole('button', { name: 'Next palette' }).click()
       await expect(checked(page)).toHaveAccessibleName(name)
-      if (name === 'Current') expect(await palette(page)).toBeNull()
+      if (name === 'Royal') expect(await palette(page)).toBeNull()
       else expect(await palette(page)).toBe(name.toLowerCase())
     }
   })
@@ -189,7 +189,7 @@ test.describe('settings panel', () => {
       await page.reload()
       await open(page)
       await expect(checked(page)).toHaveAccessibleName(name)
-      if (name === 'Current') expect(await palette(page)).toBeNull()
+      if (name === 'Royal') expect(await palette(page)).toBeNull()
       else expect(await palette(page)).toBe(name.toLowerCase())
     }
   })
