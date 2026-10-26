@@ -27,6 +27,8 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.4",
     "vite": "^6.2.0"
   }
 }

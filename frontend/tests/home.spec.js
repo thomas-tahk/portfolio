@@ -1,6 +1,8 @@
 import { test, expect } from './fixtures.js'
 import { readFileSync } from 'node:fs'
 import { sitePath } from './standardChecks.js'
+import AxeBuilder from '@axe-core/playwright'
+import jsQR from 'jsqr'
 
 const content = JSON.parse(readFileSync(new URL('../src/content.json', import.meta.url)))
 
@@ -323,5 +325,66 @@ test.describe('settings panel', () => {
     expect(wordLines).toEqual([1, 1])
     expect(await h1.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true)
     expect(await h1.innerText()).toBe('Thomas Tahk')
+  })
+})
+
+test.describe('QR code dialog', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+  const gear = (page) => page.getByRole('button', { name: 'Settings' })
+  const show = (page) => page.getByRole('button', { name: 'Show QR code' })
+  const openQr = async (page) => {
+    await gear(page).click()
+    await show(page).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+  }
+  const pixels = (page) =>
+    page.evaluate(async () => {
+      const img = document.querySelector('.qr-image')
+      await img.decode()
+      const c = document.createElement('canvas')
+      c.width = c.height = 600
+      const ctx = c.getContext('2d')
+      ctx.drawImage(img, 0, 0, 600, 600)
+      return [...ctx.getImageData(0, 0, 600, 600).data]
+    })
+
+  for (const scheme of ['light', 'dark']) {
+    test(`shows a scannable QR for this page and passes axe (${scheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme })
+      await page.goto(sitePath('/#section'))
+      await openQr(page)
+      const dialog = page.getByRole('dialog')
+      await expect(dialog.getByRole('img')).toBeVisible()
+      const url = page.url().split('#')[0]
+      await expect(dialog.locator('.qr-url')).toHaveText(url)
+
+      const box = await dialog.getByRole('img').boundingBox()
+      expect(box.width).toBeGreaterThanOrEqual(240)
+      const code = jsQR(Uint8ClampedArray.from(await pixels(page)), 600, 600)
+      expect(code?.data).toBe(url)
+
+      const { violations } = await new AxeBuilder({ page }).analyze()
+      expect(violations.filter((v) => ['serious', 'critical'].includes(v.impact)).map((v) => v.id)).toEqual([])
+
+      const dir = process.env.SHOT_DIR
+      if (dir && scheme === 'light') await page.screenshot({ path: `${dir}/qr-390-light.png` })
+      if (dir && scheme === 'dark') {
+        await page.setViewportSize({ width: 1280, height: 800 })
+        await page.screenshot({ path: `${dir}/qr-1280-dark.png` })
+      }
+    })
+  }
+
+  test('Esc and the close button dismiss it and focus returns to the opener', async ({ page }) => {
+    await page.goto(sitePath('/'))
+    await openQr(page)
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog')).toBeHidden()
+    await expect(show(page)).toBeFocused()
+
+    await show(page).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click()
+    await expect(page.getByRole('dialog')).toBeHidden()
+    await expect(show(page)).toBeFocused()
   })
 })

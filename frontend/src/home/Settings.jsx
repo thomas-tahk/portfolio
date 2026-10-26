@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import QrDialog from './QrDialog.jsx'
 
 const PALETTES = [
   { id: '', label: 'Royal' },
@@ -87,7 +88,7 @@ function usePanel() {
     placePanel(gear.current, panel.current)
     panel.current.querySelector('button, input').focus()
     const onKey = (e) => {
-      if (e.key !== 'Escape') return
+      if (e.key !== 'Escape' || e.target.closest('dialog')) return // the dialog handles its own Esc
       setOpen(false)
       gear.current.focus()
     }
@@ -122,6 +123,7 @@ export default function Settings() {
   const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || 'light')
   const [palette, setPalette] = useState(() => document.documentElement.dataset.palette || '')
   const [autoRotate, setAutoRotate] = useState(() => readStored('autorotate') === '1')
+  const [qrOpen, setQrOpen] = useState(false)
   const rotating = autoRotate && !reduced
 
   const choose = (id) => {
@@ -181,6 +183,9 @@ export default function Settings() {
         <button type="button" className="btn" onClick={() => next(false)}>
           Next palette
         </button>
+        <button type="button" className="btn" onClick={() => setQrOpen(true)}>
+          Show QR code
+        </button>
         <Switch
           label="Auto-rotate"
           pressed={rotating}
@@ -193,6 +198,7 @@ export default function Settings() {
             Off because your device asks for reduced motion.
           </p>
         )}
+        <QrDialog open={qrOpen} onClose={() => setQrOpen(false)} />
       </div>
     </>
   )

@@ -384,3 +384,27 @@ button:focus-visible {
   margin-top: 3rem;
   text-align: center;
 }
+
+.qr-dialog {
+  width: min(32rem, calc(100vw - 2rem));
+  padding: 1rem;
+  text-align: center;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+}
+.qr-dialog::backdrop {
+  background: rgb(0 0 0 / 0.75);
+}
+.qr-image {
+  display: block;
+  width: min(100%, 60vh, 28rem);
+  min-width: 15rem;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+.qr-url {
+  margin: 0.75rem 0;
+  overflow-wrap: anywhere;
+}
