@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio Build Plan</title>
+<style>
+  :root { --bg:#fbfaf7; --fg:#1b1b1b; --muted:#5a5a5a; --line:#d9d5cc; --accent:#0b5cad; --warn:#9a4a00; --chip:#ece8df; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#141414; --fg:#ececec; --muted:#a8a8a8; --line:#333; --accent:#6fb0ff; --warn:#ffb26b; --chip:#242424; } }
+  :root[data-theme="dark"] { --bg:#141414; --fg:#ececec; --muted:#a8a8a8; --line:#333; --accent:#6fb0ff; --warn:#ffb26b; --chip:#242424; }
+  body { background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, sans-serif; margin:0; padding:24px 16px 64px; }
+  main { max-width:880px; margin:0 auto; }
+  h1 { font-size:1.6rem; margin:0 0 4px; } h2 { margin-top:2.2rem; border-bottom:2px solid var(--line); padding-bottom:4px; }
+  h3 { margin:1.6rem 0 .4rem; }
+  .sub { color:var(--muted); margin:0 0 1rem; }
+  table { border-collapse:collapse; width:100%; font-size:.93rem; margin:.5rem 0 1rem; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:var(--chip); }
+  .wrap { overflow-x:auto; }
+  code { background:var(--chip); padding:1px 5px; border-radius:4px; font-size:.88em; }
+  .warn { color:var(--warn); font-weight:600; }
+  .box { border:1px solid var(--line); border-left:4px solid var(--accent); padding:10px 14px; margin:1rem 0; background:var(--chip); }
+  .box.w { border-left-color:var(--warn); }
+  li { margin:.2rem 0; }
+</style>
+</head>
+<body><main>
+<h1>Portfolio Build Plan</h1>
+<p class="sub">Draft for one approval · 2026-10-18 · nothing created on GitHub yet</p>
+
+<div class="box w"><b>Decide before anything starts (3 things):</b>
+<ol>
+<li><b>Repo rename</b>: <code>thomas-tahk-portfolio-game</code> → <code>portfolio</code>. GitHub issues get created only after you confirm the final name.</li>
+<li><b>Preview host</b>: <b>decided: GitHub Pages</b>. One deploy publishes <code>main</code> at <code>/portfolio/</code> and the current milestone branch at <code>/portfolio/preview/</code>. Nothing for you to set up, no other service.</li>
+<li><b>Who runs the agents</b>: <b>decided: cloud routines, medium effort.</b> To keep cost down, it's one cloud session per milestone working through that milestone's issues in order, not one session per issue. Cloud runs have no <code>gh</code> and may not reach outside sites, so every check (including the preview URL check) runs in GitHub Actions and the agent reads the result.</li>
+</ol></div>
+
+<h2>Parts 1–2: settled</h2>
+<ul>
+<li><b>Structure</b>: plain page at <code>/</code>, game at <code>/play/</code>, one <code>content.json</code> for both, live GitHub feed in the browser, static, no backend.</li>
+<li><b>Honesty rules</b>: "AI-assisted" stated plainly. kb-helper described as a proposal nobody adopted. Shows4Us and Amugonna kept in <code>content.json</code> with <code>hidden: true</code>.</li>
+<li><b>Headline</b>: you passed on picking one. My call, logged as a taste note: <i>"Tier 1 IT support by day. I build software on my own time."</i> It's plain and true, and it still sells the IT-person-who-builds angle. The variants can try others.</li>
+<li><b>Featured 4</b>: knowflow (live) · pocket-draft (live, if the rebuild renders) · priority-post (code + writeup; the app needs a login) · <b>Dormant</b> (moved up because it has no backend and never breaks).</li>
+<li><b>Smaller list</b>: kb-helper, plotplan, ServiceNow team workspace (screenshots).</li>
+</ul>
+
+<h2>Part 3: how agents work</h2>
+<table>
+<tr><th>Rule</th><th>What it means</th></tr>
+<tr><td>Branches</td><td>One branch per milestone, <code>m1-…</code>. Each issue gets its own short branch → PR into the milestone branch.</td></tr>
+<tr><td>Merging</td><td>The agent merges its own PR into the milestone branch once every check passes. No approval from you per issue.</td></tr>
+<tr><td>Checks (CI, every PR)</td><td>Build passes · Playwright: page loads, no horizontal scroll at 375px width, every link returns 2xx (external links retried, so one flaky site doesn't block) · axe accessibility check: zero serious or critical violations · plus the issue's own test.</td></tr>
+<tr><td>Taste/wording calls</td><td>The agent decides, adds a <b>"Calls I made"</b> list to its PR, and keeps going.</td></tr>
+<tr><td>Milestone end</td><td>The agent opens one PR from the milestone branch into main. It holds the preview link plus every "Calls I made" note in one list. <b>You</b> open it on your phone and merge or send it back. That's your only review.</td></tr>
+<tr><td>Stuck</td><td>If a check can't pass without a decision only you can make, the agent stops that issue, labels it <code>blocked</code>, and moves on to issues that don't depend on it.</td></tr>
+</table>
+
+<h2>Milestones</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>Milestone</th><th>What you judge on your phone</th></tr>
+<tr><td>M1</td><td>Foundation + working game</td><td><code>/play/</code>: the avatar moves (keys on desktop, touch on phone), modals show current content. <code>/</code> is a placeholder.</td></tr>
+<tr><td>M2</td><td>Plain front page</td><td><code>/</code>: headline, about, featured 4, smaller list, experience, contact, live recent-work feed, "Play the game version" button.</td></tr>
+<tr><td>M3</td><td>Layout variants</td><td><code>/variants/</code>: 3 layouts of the same content, side by side. You pick one (or mix) and do the hallway test.</td></tr>
+<tr><td>M4</td><td>Launch</td><td>The chosen layout live at <code>thomas-tahk.github.io/portfolio/</code>, losers deleted. <b>Done-gate</b> below.</td></tr>
+</table></div>
+
+<div class="box"><b>Done-gate (whole project):</b> someone who's never seen it opens <code>thomas-tahk.github.io/portfolio/</code> on their phone, can say what you do within 30 seconds, and taps through to a live project that works.</div>
+
+<h2>Issues</h2>
+
+<h3>M1: Foundation + working game</h3>
+<div class="wrap"><table>
+<tr><th>#</th><th>Change (≈ one PR)</th><th>Its own done-check</th><th>Needs</th></tr>
+<tr><td>1.1</td><td>Test harness: Playwright + axe + CI workflow running the standard checks on every PR to <code>m*</code> branches and main</td><td>CI runs a smoke test against the current build and it's green</td><td>none</td></tr>
+<tr><td>1.2</td><td>Two-page Vite build: <code>/</code> placeholder, game moved to <code>/play/</code>; base path set by env var (<code>/portfolio/</code> for main, <code>/portfolio/preview/</code> for previews)</td><td>Both pages load in Playwright; game canvas present</td><td>1.1</td></tr>
+<tr><td>1.3</td><td>Preview deploys: the Pages workflow also builds the newest <code>m*</code> branch into <code>/portfolio/preview/</code></td><td>After deploy, CI requests <code>/portfolio/preview/</code> and <code>/portfolio/preview/play/</code> and gets 200 for both</td><td>1.2</td></tr>
+<tr><td>1.4</td><td>Move all content out of <code>store.js</code> into <code>content.json</code> (with <code>hidden</code> flag + feed repo list), add the new projects, game reads from it</td><td>Schema test passes; Playwright opens each game modal and its text matches <code>content.json</code>; hidden projects absent</td><td>1.2</td></tr>
+<tr><td>1.5</td><td>Fix avatar movement on the deployed build. Reproduce it first as a failing Playwright test on the built site (press a key → player position changes), then fix</td><td>That test is red before the fix and green after</td><td>1.2</td></tr>
+<tr><td>1.6</td><td>Touch movement at phone width: verify, fix if broken</td><td>Playwright with phone + touch emulation: tap-and-hold moves the player</td><td>1.5</td></tr>
+</table></div>
+
+<h3>M2: Plain front page</h3>
+<div class="wrap"><table>
+<tr><th>#</th><th>Change</th><th>Its own done-check</th><th>Needs</th></tr>
+<tr><td>2.1</td><td>Front page from <code>content.json</code>: headline, about, featured 4, smaller list, experience, contact (copy-email button), game button</td><td>Every section renders; every visible project from <code>content.json</code> appears; hidden ones don't</td><td>M1</td></tr>
+<tr><td>2.2</td><td>Recent-work feed: browser fetch of public events → merged PRs in listed repos → title lookup → newest 5</td><td>GitHub API mocked in Playwright: shows 5 items with titles; <b>hides</b> on empty, on 403 rate-limit, on network error</td><td>2.1</td></tr>
+<tr><td>2.3</td><td>Labeled placeholder images for the no-live-link projects (ServiceNow workspace, priority-post), with alt text, plus a "fill these in" list in the milestone PR</td><td>Placeholders load; axe passes alt-text rule; reminder list present</td><td>2.1</td></tr>
+</table></div>
+
+<h3>M3: Layout variants</h3>
+<div class="wrap"><table>
+<tr><th>#</th><th>Change</th><th>Its own done-check</th><th>Needs</th></tr>
+<tr><td>3.1</td><td>Variant B: different layout + headline, same <code>content.json</code>, at <code>/variants/b/</code></td><td>Standard checks on that page</td><td>M2</td></tr>
+<tr><td>3.2</td><td>Variant C, the same way, at <code>/variants/c/</code></td><td>Standard checks</td><td>M2</td></tr>
+<tr><td>3.3</td><td><code>/variants/</code> index linking A (current <code>/</code>), B and C, with one line on what each one tries</td><td>All three links load</td><td>3.1, 3.2</td></tr>
+</table></div>
+
+<h3>M4: Launch</h3>
+<div class="wrap"><table>
+<tr><th>#</th><th>Change</th><th>Its own done-check</th><th>Needs</th></tr>
+<tr><td>4.1</td><td>Promote your pick to <code>/</code>, delete the other variants and <code>/variants/</code></td><td>Standard checks; <code>/variants/</code> returns 404</td><td>M3 + your pick</td></tr>
+<tr><td>4.2</td><td>Production deploy to GitHub Pages at <code>/portfolio/</code>; README updated with the new URL</td><td>Playwright runs the standard checks against the <b>live</b> Pages URL</td><td>4.1 + rename done</td></tr>
+</table></div>
+
+<h2>Not in this plan</h2>
+<ul>
+<li>Written case-study pages (the developer layer). Next slice.</li>
+<li>Custom domain, link-preview images for LinkedIn, analytics. Not asked for.</li>
+<li>Freezing the avatar while a modal is open (the unfinished guard in <code>Player.js</code>). Noted, not fixed.</li>
+<li>knowflow's keep-alive dies around 10/30 unless that repo gets a commit. Separate from this plan.</li>
+</ul>
+</main></body>
+</html>

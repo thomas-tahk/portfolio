@@ -275,7 +275,7 @@ export default async function initGame() {
     if (new URLSearchParams(window.location.search).has("test")) {
         window.__player = player
         window.__layout = { map: L.map, zoneSize: L.sectionSize, zones: getZones(), maxTextWidth: Math.max(...textWidths) }
-        window.__cam = () => ({ x: k.camPos().x, y: k.camPos().y })
+        window.__cam = () => ({ x: k.camPos().x, y: k.camPos().y, zoom: k.camScale().x })
         window.__socials = () => socialParts.map(({ key, circle, logo }) => ({
             key, circle: { x: circle.pos.x, y: circle.pos.y, r: L.socialRadius },
             logo: { x: circle.pos.x + logo.pos.x, y: circle.pos.y + logo.pos.y, w: logo.width * logo.scale.x, h: logo.height * logo.scale.y },

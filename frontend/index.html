@@ -3,12 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content="0; url=./play/" />
-    <title>Thomas T Portfolio</title>
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="Thomas Tahk: IT support by day, software developer on my own time. Projects, experience and contact." />
+    <script>
+      (function () {
+        var t
+        try { t = localStorage.getItem('theme') } catch (e) {}
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.setAttribute('data-theme', t)
+        var p
+        try { p = localStorage.getItem('palette') } catch (e) {}
+        if (['ember', 'forest', 'grape', 'cherry'].indexOf(p) > -1) {
+          document.documentElement.setAttribute('data-palette', p)
+        }
+      })()
+    </script>
+    <title>Thomas Tahk | Developer</title>
   </head>
   <body>
-    <main>
-      <p>Taking you to the portfolio... <a href="./play/">Continue to the game</a></p>
-    </main>
+    <div id="home"></div>
+    <script type="module" src="/src/home/main.jsx"></script>
   </body>
 </html>

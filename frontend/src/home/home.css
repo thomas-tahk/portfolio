@@ -1,0 +1,415 @@
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --text: #0d1117;
+  --muted: #3d4655;
+  --accent: #2d5bff;
+  --on-accent: #ffffff;
+  --card: #eef2ff;
+  --line: #0d1117;
+}
+
+/* A palette is one set of custom properties per theme. The inline script in
+   index.html always sets data-theme on <html> (stored choice, else system). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0a0e1a;
+  --text: #f5f7fb;
+  --muted: #c3cbdb;
+  --accent: #ffd400;
+  --on-accent: #0a0e1a;
+  --card: #141b33;
+  --line: #f5f7fb;
+}
+
+/* Palette directions (issue 58). Applied via data-palette on <html>; the
+   picker lives in the settings panel. No data-palette = the original above. */
+:root[data-palette='ember'] {
+  --bg: #fffaf5;
+  --text: #1a0f0a;
+  --muted: #4a3a32;
+  --accent: #c0310a;
+  --on-accent: #ffffff;
+  --card: #fff1e8;
+  --line: #1a0f0a;
+}
+:root[data-palette='ember'][data-theme='dark'] {
+  --bg: #140a06;
+  --text: #fff6f0;
+  --muted: #e0c9bc;
+  --accent: #ff7a2e;
+  --on-accent: #140a06;
+  --card: #26140c;
+  --line: #fff6f0;
+}
+:root[data-palette='forest'] {
+  --bg: #f7fffa;
+  --text: #08150e;
+  --muted: #32463b;
+  --accent: #0b6b3a;
+  --on-accent: #ffffff;
+  --card: #e6f6ec;
+  --line: #08150e;
+}
+:root[data-palette='forest'][data-theme='dark'] {
+  --bg: #05140c;
+  --text: #f1fff6;
+  --muted: #bfdccb;
+  --accent: #2ee27a;
+  --on-accent: #05140c;
+  --card: #0d2619;
+  --line: #f1fff6;
+}
+:root[data-palette='grape'] {
+  --bg: #fcf9ff;
+  --text: #150a24;
+  --muted: #443757;
+  --accent: #6a1bd1;
+  --on-accent: #ffffff;
+  --card: #f1e8ff;
+  --line: #150a24;
+}
+:root[data-palette='grape'][data-theme='dark'] {
+  --bg: #0f0620;
+  --text: #f8f2ff;
+  --muted: #d2c3ea;
+  --accent: #b57bff;
+  --on-accent: #0f0620;
+  --card: #1d0e3a;
+  --line: #f8f2ff;
+}
+:root[data-palette='cherry'] {
+  --bg: #fffafc;
+  --text: #1c0613;
+  --muted: #4f3041;
+  --accent: #c4005f;
+  --on-accent: #ffffff;
+  --card: #ffe8f2;
+  --line: #1c0613;
+}
+:root[data-palette='cherry'][data-theme='dark'] {
+  --bg: #18040e;
+  --text: #fff2f8;
+  --muted: #e8c3d4;
+  --accent: #ff4d9d;
+  --on-accent: #18040e;
+  --card: #2c0a1c;
+  --line: #fff2f8;
+}
+
+.theme-toggle {
+  min-width: 44px;
+  height: 2.75rem;
+  padding: 0 0.75rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.theme-track {
+  display: inline-block;
+  width: 2.5rem;
+  height: 1.5rem;
+  padding: 2px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  box-sizing: border-box;
+}
+.theme-knob {
+  display: block;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: var(--line);
+  transition: transform 0.15s;
+}
+.theme-toggle[aria-pressed='true'] .theme-track {
+  background: var(--accent);
+}
+.theme-toggle[aria-pressed='true'] .theme-knob {
+  transform: translateX(1rem);
+  background: var(--on-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-knob {
+    transition: none;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 1.125rem/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  overflow-wrap: break-word;
+}
+
+main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+h1 {
+  overflow-wrap: normal;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  margin: 0.5rem 0;
+}
+h2 {
+  font-size: 1.5rem;
+  margin: 2.5rem 0 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 3px solid var(--accent);
+}
+h3 {
+  font-size: 1.125rem;
+  margin: 0 0 0.25rem;
+}
+p {
+  margin: 0.5rem 0;
+}
+
+a {
+  color: var(--accent);
+}
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+.headline {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.skip {
+  position: absolute;
+  left: -999px;
+}
+.skip:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  background: var(--bg);
+  padding: 0.5rem;
+  z-index: 1;
+}
+
+.about img {
+  float: right;
+  width: 7.5rem;
+  height: auto;
+  margin: 0 0 0.5rem 1rem;
+  border: 3px solid var(--accent);
+  border-radius: 0.5rem;
+}
+.about::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.plain-list > li + li {
+  margin-top: 1rem;
+}
+
+.card {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+.more-item {
+  border-left: 4px solid var(--accent);
+  padding-left: 0.75rem;
+}
+.more-item p {
+  margin: 0.25rem 0;
+}
+.shot {
+  display: block;
+  width: 100%;
+  max-width: 28rem;
+  height: auto;
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+}
+.meta {
+  color: var(--muted);
+  margin: 0;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.btn {
+  display: inline-block;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.6;
+  text-decoration: none;
+  color: var(--accent);
+  background: transparent;
+  border: 2px solid var(--accent);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+.btn.solid {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.copy-status {
+  color: var(--muted);
+}
+
+.view-switch {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 0.75rem 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+.view-switch .btn {
+  height: 2.75rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  display: inline-flex;
+  align-items: center;
+}
+.view-switch {
+  position: relative;
+}
+.gear {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+.settings-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  z-index: 10;
+  width: min(18rem, calc(100vw - 2rem));
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+}
+.settings-panel[hidden] {
+  display: none;
+}
+.settings-panel .theme-toggle {
+  justify-content: space-between;
+}
+.theme-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.palette-options {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.palette-options legend {
+  padding: 0;
+  font-weight: 600;
+}
+.palette-options label {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.palette-options input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--accent);
+}
+.settings-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+:root[data-fade],
+:root[data-fade] * {
+  transition:
+    background-color 0.6s,
+    color 0.6s,
+    border-color 0.6s;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-fade],
+  :root[data-fade] * {
+    transition: none;
+  }
+}
+
+.game-link {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.qr-dialog {
+  box-sizing: border-box;
+  width: min(32rem, calc(100vw - 2rem));
+  padding: 1rem;
+  text-align: center;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+}
+.qr-dialog::backdrop {
+  background: rgb(0 0 0 / 0.75);
+}
+.qr-image {
+  display: block;
+  width: min(100%, 60vh, calc(100vh - 11rem), 28rem);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+@media (orientation: portrait) {
+  .qr-image {
+    min-width: 15rem;
+  }
+}
+.qr-url {
+  margin: 0.75rem 0;
+  overflow-wrap: anywhere;
+}

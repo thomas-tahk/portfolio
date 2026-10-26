@@ -41,3 +41,23 @@ for (const viewport of VIEWPORTS) {
     }
   })
 }
+
+test('/play/ plain-version pill is covered by popups and reachable by Tab at 390x844', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(sitePath('/play/') + '?test')
+  await page.waitForFunction(() => window.__openModal)
+  const pill = page.getByRole('link', { name: '← Plain version' })
+  const p = await pill.boundingBox()
+  const centre = { x: p.x + p.width / 2, y: p.y + p.height / 2 }
+  for (const name of ['skills', 'experience']) {
+    await page.evaluate((all) => all.forEach((n) => window.__openModal(n, false)), MODALS)
+    await page.evaluate((n) => window.__openModal(n, true), name)
+    const pillOnTop = await page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('.plain-page-link'), centre)
+    expect(pillOnTop, `pill on top of ${name} popup`).toBe(false)
+  }
+  await page.evaluate((all) => all.forEach((n) => window.__openModal(n, false)), MODALS)
+  await page.locator('#game').focus()
+  await page.keyboard.press('Tab') // canvas is last in the page: leaves to the browser chrome
+  await page.keyboard.press('Tab')
+  await expect(pill).toBeFocused()
+})
