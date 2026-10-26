@@ -68,7 +68,7 @@ test.describe('phone touch', () => {
     const cdp = await page.context().newCDPSession(page)
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 375 / 2, y: 812 / 2 - 200, id: 1 }] })
     // waitForSelector is the assertion: it throws if the modal never opens
-    await page.waitForSelector('.about-modal', { timeout: 3000 })
+    await page.waitForSelector('.about-modal', { timeout: 10_000 })
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   })
 })

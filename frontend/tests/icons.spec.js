@@ -20,6 +20,12 @@ async function standBesideFirstIcon(page) {
   return first
 }
 
+// Poll rather than sleep: a slow runner needs more wall-clock time for a kicked icon to cover the same distance.
+const expectIconMoved = (page, from) => expect.poll(async () => {
+  const now = (await icons(page))[KICKED]
+  return Math.hypot(now.x - from.x, now.y - from.y)
+}, { message: 'icon moved', timeout: 10_000 }).toBeGreaterThan(20)
+
 test('/play/ tech icons exist on load at their start positions', async ({ page }) => {
   await openGame(page)
   const list = await icons(page)
@@ -32,15 +38,15 @@ test('/play/ Space next to an icon kicks it, and it slows to a stop', async ({ p
   const first = await standBesideFirstIcon(page)
 
   await page.keyboard.press('Space')
-  await page.waitForTimeout(300)
-  const moving = (await icons(page))[KICKED]
-  expect(Math.hypot(moving.x - first.x, moving.y - first.y), 'icon moved').toBeGreaterThan(20)
+  await expectIconMoved(page, first)
 
-  await page.waitForTimeout(2500)
-  const a = (await icons(page))[KICKED]
-  await page.waitForTimeout(300)
-  const b = (await icons(page))[KICKED]
-  expect([b.x, b.y], 'icon has stopped').toEqual([a.x, a.y])
+  // Stopped = two samples a moment apart agree. Poll: how long the slowdown takes depends on the runner's frame rate.
+  await expect.poll(async () => {
+    const a = (await icons(page))[KICKED]
+    await page.waitForTimeout(300)
+    const b = (await icons(page))[KICKED]
+    return [b.x === a.x, b.y === a.y]
+  }, { message: 'icon has stopped', timeout: 15_000 }).toEqual([true, true])
 })
 
 test('/play/ Space far from every icon kicks nothing', async ({ page }) => {
@@ -54,9 +60,7 @@ test('/play/ closing the Skills popup puts every icon back', async ({ page }) =>
   await openGame(page)
   await standBesideFirstIcon(page)
   await page.keyboard.press('Space')
-  await page.waitForTimeout(300)
-  const kicked = (await icons(page))[KICKED]
-  expect(kicked.x, 'icon moved before reset').not.toBe(kicked.startX)
+  await expect.poll(async () => (await icons(page))[KICKED].x, { message: 'icon moved before reset' }).not.toBe((await icons(page))[KICKED].startX)
 
   await page.evaluate(() => window.__openModal('skills', true))
   await page.evaluate(() => window.__openModal('skills', false))
@@ -83,10 +87,8 @@ test.describe('phone', () => {
     const before = await playerPos(page)
 
     await cdpTap(page)
-    await page.waitForTimeout(400)
+    await expectIconMoved(page, first)
 
-    const icon = (await icons(page))[KICKED]
-    expect(Math.hypot(icon.x - first.x, icon.y - first.y), 'icon moved').toBeGreaterThan(20)
     const after = await playerPos(page)
     expect(Math.hypot(after.x - before.x, after.y - before.y), 'player walked').toBeLessThan(15)
   })

@@ -15,13 +15,24 @@ const closeButton = (page) => page.getByRole('button', { name: 'Close' })
 async function openGame(page) {
   await page.goto(sitePath('/play/') + '?test')
   await page.waitForFunction(() => window.__icons && window.__icons().length === 9 && window.__player)
-  await page.waitForTimeout(500)
+  await page.waitForFunction(() => Math.hypot(window.__cam().x - window.__player.pos.x, window.__cam().y - window.__player.pos.y) < 5)
 }
 
+// Poll rather than sleep: a slow runner needs more wall-clock time for the icon to cover the same distance.
 async function expectKicked(page, before, how) {
-  await page.waitForTimeout(300)
-  const after = await icon(page)
-  expect(Math.hypot(after.x - before.x, after.y - before.y), `icon moved after ${how}`).toBeGreaterThan(20)
+  await expect.poll(async () => {
+    const after = await icon(page)
+    return Math.hypot(after.x - before.x, after.y - before.y)
+  }, { message: `icon moved after ${how}`, timeout: 10_000 }).toBeGreaterThan(20)
+}
+
+// The game clamps its per-frame time step, so on a slow runner (CI renders ~7 fps) the world runs slower than the wall clock and
+// long walks blow the test timeout. Tests therefore teleport to just short of each leg (a test hook, like __player itself)
+// and use real input only for the last few hundred units, which is the part that matters.
+// It also waits for the camera to catch up: a finger aims relative to the screen centre, which is the camera, not the player.
+async function teleport(page, { x, y }) {
+  await page.evaluate(([px, py]) => { window.__player.pos.x = px; window.__player.pos.y = py }, [x, y])
+  await page.waitForFunction(([px, py]) => Math.hypot(window.__cam().x - px, window.__cam().y - py) < 5, [x, y])
 }
 
 // Walk the player (8-way, like WASD) toward `goal`, steering every frame inside the page, and stop at the first frame it is within
@@ -50,24 +61,23 @@ async function steer(page, goal, { within = 120, ring, until } = {}) {
     tick()
   }), { goal, within, ring, until })
   expect(arrived, `player reached ${JSON.stringify(goal)}`).toBe(true)
-  await page.waitForTimeout(300) // let the camera and icons settle
 }
 
 // Final approach: walk at the icon from up-and-right until it is inside kick reach (centre distance 70..125).
 const approachIcon = async (page) => steer(page, { x: ICON.x, y: ICON.y }, { ring: { ...ICON, within: 125 } })
 
-// Phone: hold a real finger down toward the goal, re-aimed each step, until the player arrives (or `stop()` is true).
-async function fingerWalkTo(page, cdp, goal, stop = async () => false) {
-  const centre = { x: 375 / 2, y: 812 / 2 }
-  for (let i = 0; i < 300; i++) {
-    const p = await playerPos(page)
-    const dist = Math.hypot(goal.x - p.x, goal.y - p.y)
-    if (dist < 25 || await stop()) break
-    const point = [{ x: centre.x + ((goal.x - p.x) / dist) * 120, y: centre.y + ((goal.y - p.y) / dist) * 120, id: 1 }]
-    await cdp.send('Input.dispatchTouchEvent', { type: i === 0 ? 'touchStart' : 'touchMove', touchPoints: point })
-    await page.waitForTimeout(40)
+// Phone: hold a real finger to the right of the player until it has visibly walked right, then lift it. A remote-controlled walk
+// cannot be steered to a spot: at ~700 units/s a CDP round trip on a slow runner is hundreds of units of overshoot (into the
+// Skills zone, whose popup then freezes input). So the finger proves walking works, and the caller teleports to the exact spot.
+async function fingerWalkRight(page, cdp) {
+  const start = await playerPos(page)
+  const point = [{ x: 375 / 2 + 120, y: 812 / 2, id: 1 }]
+  try {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: point })
+    await expect.poll(async () => (await playerPos(page)).x - start.x, { message: 'finger walk moved the player right' }).toBeGreaterThan(50)
+  } finally {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   }
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   await page.waitForTimeout(500) // a touchend after a long hold is not a tap; let it settle
 }
 
@@ -83,8 +93,7 @@ async function fingerTap(cdp) {
 test('/play/ walk to the icons with the keyboard, press Space: the icon is kicked', async ({ page }) => {
   await openGame(page)
   const before = await icon(page)
-  await steer(page, { x: 0, y: APPROACH_START.y })
-  await steer(page, APPROACH_START)
+  await teleport(page, { x: APPROACH_START.x + 50, y: APPROACH_START.y - 50 })
   await approachIcon(page)
   await page.keyboard.press('Space')
   await expectKicked(page, before, 'real Space')
@@ -92,11 +101,11 @@ test('/play/ walk to the icons with the keyboard, press Space: the icon is kicke
 
 test('/play/ visit Skills, click Close, walk to the icons, press Space: the icon is kicked', async ({ page }) => {
   await openGame(page)
-  await steer(page, { x: -900, y: 0 })
+  await teleport(page, { x: -900, y: 0 })
   await steer(page, { x: -900, y: 400 }, { until: '.skills-modal' }) // walk into the Skills zone; the popup opens on contact
   await closeButton(page).click()
-  await steer(page, { x: APPROACH_START.x, y: 160 }) // out of the zone to the right
-  await steer(page, APPROACH_START)
+  await steer(page, { x: -650, y: 175 }) // a short real walk out of the zone to the right: input works again after Close
+  await teleport(page, { x: APPROACH_START.x + 50, y: APPROACH_START.y - 50 })
   await approachIcon(page)
   const before = await icon(page)
   await page.keyboard.press('Space')
@@ -110,7 +119,9 @@ test.describe('phone', () => {
     await openGame(page)
     const before = await icon(page)
     const cdp = await page.context().newCDPSession(page)
-    await fingerWalkTo(page, cdp, BESIDE_ICON)
+    await teleport(page, { x: BESIDE_ICON.x, y: BESIDE_ICON.y })
+    await fingerWalkRight(page, cdp)
+    await teleport(page, BESIDE_ICON)
     await fingerTap(cdp)
     await expectKicked(page, before, 'real tap')
   })
