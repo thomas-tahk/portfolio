@@ -1,25 +1,18 @@
 # Chief state
-Updated: 2026-10-30
-Phase: Game redesign direction approved; production implementation NOT started.
-Branch: design/neon-plaza-handoff (prototype + this handoff; no production changes).
-Design issue: https://github.com/thomas-tahk/portfolio/issues/40
-Original references: https://claude.ai/artifact/CFMtyBfrtE7MWHDCgQkKVc (Claude sign-in required).
-Approved: A Arcade Night aesthetic + C Overworld connected paths; NO houses, green checkerboard or fantasy village.
-Approved composition: dark navy plaza, open low platforms with signs for Projects / Experience / Skills, quiet intersecting paths, kickable balls retained.
-Lighting: bright near-white pink/cyan/gold neon cores, layered colored bloom, light spilling onto floor, raised platform edges and deep grounded shadows.
-User rejected first thin-border version as flat / missing neon; lighting revision was substantially better. Do not regress to colored outlines alone.
-Character: user rejected cyan block, original green fantasy sprite and toy-robot visor design.
-Character accepted FOR NOW: original pixel human, visible face, swept dark hair, asymmetric streetwear jacket, dark trousers, boots, one cyan wrist light with localized glow. Not copied from a known character.
-Approved visual source: frontend/neon-plaza-prototype.html; character: frontend/public/sprites/arcade-explorer-prototype.svg.
-Preview: cd frontend && npm run dev -- --host 127.0.0.1 --port 5174; open http://127.0.0.1:5174/portfolio/neon-plaza-prototype.html.
-Prototype imports real content.json; desktop signs open panels; phone panel toggles. Character = front-facing idle only; movement, physics, camera and responsive game behavior NOT implemented here.
-Validation: inspected rendered preview; desktop destination panel opened/closed; prior layout checked at 1440px and 390px without horizontal overflow; latest art checked in narrow browser pane. No production test suite run for isolated visual study.
-Next action: read this prototype, inspect current /play implementation, then plan and implement the approved design in the real game while preserving existing controls, balls, content, accessibility and plain page.
-Do not ship prototype code as production unchanged; add directional walking frames for accepted human character and verify motion/readability in the real game.
-Proposed implementation done-gate: on desktop and phone, walk through neon plaza, open real Projects, follow a real project link, close panel and kick a ball; validate original interactions remain functional.
-Stale handoff corrected: https://github.com/thomas-tahk/portfolio/issues/74 is CLOSED and fixed on main; no remaining work there. No open PRs at initial check.
-Dependency note: local node_modules lacks qrcode; Vite logs unresolved dependency for plain page, though isolated prototype works. Install lockfile dependencies before production verification; do not remove qrcode.
-Waiting on user: no further design selection needed; character acceptable for now. Earlier vision done-gate unconfirmed; do not invent broader scope.
-User is new to Codex; give exact UI steps and verify available tools. Terminal browser advice earlier was unreliable; desktop browser worked after sign-in.
-Unrelated untracked .claude/ existed before this work; left untouched and excluded from handoff commit.
-Production merge/deploy: not authorized by this handoff; leave implementation reviewable on branch/PR.
+Updated: 2026-10-30 (Claude → Codex baton)
+Phase: Game redesign — layout decisions in progress; production implementation NOT started (user stopped it to review mockups first).
+Branch: design/neon-plaza-handoff (prototype + mockups only; no production changes). Design issue: https://github.com/thomas-tahk/portfolio/issues/40
+Base design (approved, unchanged): neon Arcade Night signs on raised bases, bright cores + floor spill + deep shadows; human streetwear pixel character; kickable balls. See frontend/neon-plaza-prototype.html.
+DECIDED this session: Option A — name + GitHub/LinkedIn/Email/Plain version in a slim neon top bar; world holds only Projects / Experience / Skills + balls. In-world About square, social circles and intro text get removed (About covered by plain page).
+  Reason: user said B's About sign looked "dragged and dropped" and made the world layout pointless; he wants visual unity (everything in one neon language).
+  Mockup: frontend/neon-plaza-scope.html (A vs B side by side).
+REJECTED: the two wide crossing lanes from the prototype ("lanes look kinda weird"). User leans toward A3 = thin neon floor lines from a centre hub to each sign.
+OPEN — user to pick a floor variant: frontend/neon-plaza-floor.html shows A3a thin square-corner lines / A3b circuit board (thick lines, corner nodes, glowing hub ring) / A3c soft curves / A3d flowing dashes (animated). My earlier fallback A2 (no lines, open floor) is still possible.
+Preview: cd frontend && npm run dev -- --host 127.0.0.1 --port 5174, then open http://127.0.0.1:5174/portfolio/neon-plaza-floor.html (and neon-plaza-scope.html). Mockups are static, throwaway.
+Next action: user reviews floor mockups in Codex and picks one (or asks for changes). THEN plan + build the real /play game.
+Build plan (agreed shape, not started): 1) npm ci (qrcode missing locally — done once this session) 2) floor: navy grid + light pools + chosen lines, replacing the tiled shader background 3) signs: rebuild Section.js as neon sign + base, glow drawn as layered fading shapes in kaplay (crisp at any zoom) 4) character: new 8-direction × 4-frame sheet in the same layout as public/sprites/player.png so Player.js anims stay; wrist-light glow 5) balls: keep kick logic, neon restyle 6) top bar React component replacing PlainPageLink; remove About/social/intro from initGame + LAYOUT; update tests (hud/play/socials/modals/content reference about + socials) 7) lint + Playwright + manual desktop/phone check.
+Done-gate: on desktop and phone, walk the plaza, open Projects, follow a real project link, close the panel, kick a ball; plain page still works.
+Baseline test run was NOT done (user stopped it). Run `npx playwright test` before changing production code.
+Do not ship prototype/mockup HTML as production. Production merge/deploy needs the user's explicit word; one PR from this branch to main.
+Unrelated untracked .claude/ in repo root predates this work; leave it out of commits.
+User is new to Codex: give exact steps.
