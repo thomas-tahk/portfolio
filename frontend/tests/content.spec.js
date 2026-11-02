@@ -55,10 +55,6 @@ test('game modals show content.json text and no hidden project', async ({ page }
   }
   await page.evaluate(() => window.__openModal('projects', false))
 
-  await page.evaluate(() => window.__openModal('about'))
-  await expect(page.locator('.about-modal')).toContainText(content.about.text)
-  await page.evaluate(() => window.__openModal('about', false))
-
   await page.evaluate(() => window.__openModal('experience'))
   const experience = page.locator('.modal').filter({ hasText: content.experience[0].company })
   for (const e of content.experience) await expect(experience).toContainText(e.description)

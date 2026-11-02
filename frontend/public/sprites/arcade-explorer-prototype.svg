@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="32" viewBox="0 0 24 32" shape-rendering="crispEdges">
+<title>Pixel cyberpunk streetwear character study</title>
+<!-- Original front-facing character; asymmetric streetwear, visible face. -->
+<path fill="#060916" d="M9 1h7v2h2v8h-2v2h3v3h2v9h-3v6h-6v-5h-1v5H5v-7H3v-8h3v-3h3v-2H7V4h2z"/>
+<!-- Swept dark hair and shaved side. -->
+<path fill="#28324b" d="M9 2h7v2h2v3h-3V5H9v3H7V4h2z"/>
+<path fill="#526078" d="M10 2h5v1h-5zM8 4h5v1H8z"/>
+<path fill="#a37b68" d="M9 6h6v5h-1v2h-4v-2H9zM16 7h1v3h-1z"/>
+<path fill="#d3a18a" d="M10 6h4v4h-4zM10 10h3v1h-3z"/>
+<path fill="#151d30" d="M10 8h1v1h-1zM14 8h1v1h-1z"/>
+<path fill="#775a55" d="M12 11h2v1h-2z"/>
+<!-- High collar and asymmetric long jacket. -->
+<path fill="#414557" d="M7 13h3v2h4v-2h3v2h2v10h-4v-2H8v3H5V16h2z"/>
+<path fill="#242a3e" d="M8 15h3v8H8v4H5V17h3zM15 15h3v10h-3z"/>
+<path fill="#677083" d="M7 14h2v2H7zM6 17h1v7H6zM17 16h1v6h-1z"/>
+<path fill="#121b2e" d="M11 15h3v9h-3z"/>
+<path fill="#82919f" d="M14 16h1v8h-1z"/>
+<path fill="#94516e" d="M8 14h1v4H8zM16 21h2v1h-2z"/>
+<!-- Sleeves, exposed hands, luminous wrist device. -->
+<path fill="#30384e" d="M4 16h2v7H4zM18 17h2v6h-2z"/>
+<path fill="#c3947e" d="M4 23h2v3H4zM18 24h2v2h-2z"/>
+<path fill="#2898b1" d="M18 22h3v2h-3z"/>
+<path fill="#a1f6ff" d="M18 22h3v1h-3z"/>
+<!-- Trousers, uneven knee panel, heavy boots. -->
+<path fill="#20283a" d="M8 24h3v5H8zM13 24h3v5h-3z"/>
+<path fill="#485269" d="M8 26h2v2H8zM15 25h1v3h-1z"/>
+<path fill="#10182a" d="M7 28h4v3H6v-2h1zM13 28h4v1h1v2h-5z"/>
+<path fill="#697084" d="M6 30h5v1H6zM13 30h5v1h-5z"/>
+</svg>

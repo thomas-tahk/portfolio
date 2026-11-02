@@ -3,7 +3,7 @@ import { sitePath } from './standardChecks.js'
 import { zoomForScreen } from '../src/constants.js'
 
 // Load view: camera starts on the player at the origin, so world (x, y) lands at centre + (x, y) * zoom.
-test('/play/ at 1280x800 all four section labels and part of the tech icons are on screen on load', async ({ page }) => {
+test('/play/ at 1280x800 all three section labels and part of the tech icons are on screen on load', async ({ page }) => {
   const size = { width: 1280, height: 800 }
   await page.setViewportSize(size)
   await page.goto(sitePath('/play/') + '?test')
@@ -13,11 +13,11 @@ test('/play/ at 1280x800 all four section labels and part of the tech icons are 
   const toScreen = (x, y) => ({ x: size.width / 2 + x * zoom, y: size.height / 2 + y * zoom })
   const inView = (p) => p.x >= 0 && p.x <= size.width && p.y >= 0 && p.y <= size.height
 
-  // label sits 150 world units above its zone; allow half a label (210 wide, 40 tall) around that point
-  for (const name of ['about', 'skills', 'experience', 'projects']) {
+  // label sits 170 world units above its zone; allow half a label (325 wide, 40 tall) around that point
+  for (const name of ['skills', 'experience', 'projects']) {
     const z = zones.find((s) => s.name === name)
-    for (const [dx, dy] of [[-210, -40], [210, -40], [-210, 40], [210, 40]]) {
-      expect(inView(toScreen(z.x + dx, z.y - 150 + dy)), `${name} label corner ${dx},${dy}`).toBe(true)
+    for (const [dx, dy] of [[-325, -40], [325, -40], [-325, 40], [325, 40]]) {
+      expect(inView(toScreen(z.x + dx, z.y - 170 + dy)), `${name} label corner ${dx},${dy}`).toBe(true)
     }
   }
   const icons = await page.evaluate(() => window.__icons())

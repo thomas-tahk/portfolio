@@ -1,11 +1,9 @@
 import { useEffect } from "react";
 import { closeAllModals } from "./store";
-import PlainPageLink from "./reactComponents/PlainPageLink";
+import GameHeader from "./reactComponents/GameHeader";
+import ResetPlaza from "./reactComponents/ResetPlaza";
 import ControlsMessage from "./reactComponents/ControlsMessage";
-import AboutModal from "./reactComponents/AboutModal";
-import EmailModal from "./reactComponents/EmailModal";
 import ProjectModal from "./reactComponents/ProjectModal";
-import SocialModal from "./reactComponents/SocialModal";
 import SkillsModal from "./reactComponents/SkillsModal";
 import ExperienceModal from "./reactComponents/ExperienceModal";
 
@@ -18,12 +16,10 @@ export default function ReactUI() {
 
     return (
         <>
-            <PlainPageLink />
+            <GameHeader />
+            <ResetPlaza />
             <ControlsMessage />
-            <AboutModal />
-            <EmailModal />
             <ProjectModal />
-            <SocialModal />
             <SkillsModal />
             <ExperienceModal />
         </>
