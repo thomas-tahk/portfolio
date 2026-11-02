@@ -20,8 +20,12 @@ export default function makePlayer(k, posVec2, speed, onKick, map) {
     ])
 
     player.onUpdate(() => {
-        const scale = Math.max(4, 1 / k.camScale().x)
+        // Keep the 32px sprite at least 56px tall without enlarging its collider.
+        const zoom = k.camScale().x
+        const scale = Math.max(5, 1.75 / zoom)
+        const collisionScale = Math.max(4, 1 / zoom) / scale
         if (player.scale.x !== scale) player.scale = k.vec2(scale)
+        if (player.area.scale.x !== collisionScale) player.area.scale = k.vec2(collisionScale)
     })
 
     k.camPos(player.pos) // start centred on the player (no initial slide)

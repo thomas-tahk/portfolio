@@ -1,9 +1,10 @@
 # Chief state
-Updated: 2026-11-01 (Codex)
+Updated: 2026-11-02 (Codex)
 Phase: Approved neon plaza implemented; awaiting visual/play review. No merge/deploy.
 Branch: design/neon-plaza-handoff — https://github.com/thomas-tahk/portfolio/tree/design/neon-plaza-handoff
 Design issue: https://github.com/thomas-tahk/portfolio/issues/40
 Approved: A top bar + A3d animated neon lanes, widened into roads with glowing edges, dark pavement and flowing centre dashes. Visual source: frontend/neon-plaza-lanes-prototype.html.
+Latest feedback: kicks too weak / player too small. Kick speed 1000→2400, damping 4→3 (~3× travel); avatar minimum 56px high (64px at 1280×800), camera and collision bounds preserved. Real Space probes at desktop/phone verified travel ~811–849 units vs ~257–274 before; lint/build and all 8 kick/reset tests pass. User to try feel.
 Implemented: navy grid, three raised glowing signs (Projects upper-left / Experience upper-right / Skills lower-right), open lower-left ball cluster, real name/contact/plain-page header, neon panels, original human eight-direction walking sheet and localized wrist light.
 Removed: in-world About, social circles, intro; obsolete game-only About/social/email panels. Plain page/content preserved.
 Controls retained: WASD/arrows, mouse, touch-hold, Space/tap kicks, Skills reset, map wrap, camera follow. Reduced-motion disables lane movement. Labels/player remain readable at phone zoom.

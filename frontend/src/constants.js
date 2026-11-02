@@ -41,4 +41,4 @@ export function zoomForScreen(width, height, headerHeight) {
 export const TAP_MAX_MS = 250
 
 // Tech icons: on-screen size, kick strength (world units/s), how fast they slow (higher = stops sooner), and reach in player widths
-export const ICON_KICK = { size: 100, speed: 1000, damping: 4, reachInPlayerWidths: 1.5, playerWidth: 40 }
+export const ICON_KICK = { size: 100, speed: 2400, damping: 3, reachInPlayerWidths: 1.5, playerWidth: 40 }
