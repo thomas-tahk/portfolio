@@ -1,17 +1,19 @@
 import makeSection from "./components/Section";
 import makeKaplayCtx from "./kaplayCtx";
-import { PALETTE, LAYOUT, ICON_KICK, zoomForScreen } from "./constants";
+import { LAYOUT, ICON_KICK, zoomForScreen } from "./constants";
 import makePlayer from "./entities/Player";
 import { wrapToMap } from "./utils";
-import content from "./content.json";
-import { cameraZoomValueAtom, store, isAboutModalVisibleAtom, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom, isSocialModalVisibleAtom, isEmailModalVisibleAtom, selectedLinkAtom, selectedLinkDescriptionAtom } from "./store";
+import loadPlazaArt from "./components/plazaArt";
+import makePlaza from "./components/Plaza";
+import { cameraZoomValueAtom, store, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom } from "./store";
 
 const BASE = import.meta.env.BASE_URL
 
 export default async function initGame() {
     const k = makeKaplayCtx()
+    loadPlazaArt(k)
     // player sprite and designating which frames are for which animations
-    k.loadSprite("player", `${BASE}sprites/player.png`, {
+    k.loadSprite("player", `${BASE}sprites/arcade-explorer.svg`, {
         sliceX: 4, // number of frames per row
         sliceY: 8, // number of frames per column
         anims: {
@@ -37,11 +39,6 @@ export default async function initGame() {
     // loading various fonts and sprites to be used in the project
     k.loadFont("ibm-regular", `${BASE}fonts/IBMPlexSans-Regular.ttf`);
     k.loadFont("ibm-bold", `${BASE}fonts/IBMPlexSans-Bold.ttf`);
-    k.loadSprite("github-logo", `${BASE}logos/github-logo.png`);
-    k.loadSprite("linkedin-logo", `${BASE}logos/linkedin-logo.png`);
-    // k.loadSprite("youtube-logo", "/logos/youtube-logo.png");
-    // k.loadSprite("x-logo", "/logos/x-logo.png");
-    // k.loadSprite("substack-logo", "/logos/substack-logo.png");
     k.loadSprite("javascript-logo", `${BASE}logos/js-logo.png`);
     k.loadSprite("typescript-logo", `${BASE}logos/ts-logo.png`);
     k.loadSprite("react-logo", `${BASE}logos/react-logo.png`);
@@ -51,17 +48,12 @@ export default async function initGame() {
     k.loadSprite("css-logo", `${BASE}logos/css-logo.png`);
     k.loadSprite("tailwind-logo", `${BASE}logos/tailwind-logo.png`);
     k.loadSprite("python-logo", `${BASE}logos/python-logo.png`);
-    // k.loadSprite("email-logo", "/logos/email-logo.png");
-    // a shader is a program that runs on gpu that changes color of pixel on screen
-    // kinda like a printing press for computer screens
-    // we're using a fragment shader program written in glsl specific to kaplay
-    k.loadShaderURL("tiledPattern", null, `${BASE}shaders/tiledPattern.frag`);
-    
     // zoom is derived from the screen size (see zoomForScreen) and recomputed on resize/rotate
-    const fitZoom = () => store.set(cameraZoomValueAtom, zoomForScreen(k.width(), k.height()))
+    const fitZoom = () => store.set(cameraZoomValueAtom, zoomForScreen(k.width(), k.height(), document.querySelector(".game-header")?.getBoundingClientRect().height))
     fitZoom()
     k.camScale(k.vec2(store.get(cameraZoomValueAtom)))
     k.onResize(fitZoom)
+    k.onLoad(fitZoom)
 
     k.onUpdate(() => {
         const camZoomValue = store.get(cameraZoomValueAtom)
@@ -70,132 +62,16 @@ export default async function initGame() {
         }
     })    
     
-    // gameobject that displays the shader
-    const tiledBackground = k.add([
-        k.uvquad(k.width(), k.height()),
-        k.shader("tiledPattern", () => ({
-            u_time: k.time() / 20,
-            u_color1: k.Color.fromHex(PALETTE.color1),
-            u_color2: k.Color.fromHex(PALETTE.color2),
-            u_speed: k.vec2(1, -1),  // feel free to change this to liking
-            u_aspect: k.width() / k.height(),
-            u_size: 5,
-    })),
-    k.pos(0),
-    k.fixed()
-    ])
-
-    // makes tiled pattern responsive to window resizing
-    k.onResize(() => {
-        tiledBackground.width = k.width()
-        tiledBackground.height = k.height()
-        tiledBackground.uniform.u_aspect = k.width() / k.height()
-    })
     const L = LAYOUT
-    const SHADOW = 3 // world units; offset of the dark text shadow
-    const orange = k.Color.fromHex("#f39c12")
-    const black = k.Color.fromHex("#000000")
-
-    // text with a dark shadow behind it, centred on (x, y)
-    // lines wrap at L.textWrapWidth so the long intro fits a phone screen at load zoom
-    const textWidths = [] // rendered widths, exposed to tests
-    function addShadowedText(str, x, y, size) {
-        for (const [color, dx] of [[black, SHADOW], [orange, 0]]) {
-            const textObj = k.add([
-                k.text(str, { font: "ibm-bold", size, width: L.textWrapWidth, align: "center" }),
-                k.color(color),
-                k.anchor("center"),
-                k.pos(x + dx, y),
-            ])
-            if (dx === 0) textWidths.push(textObj.width)
-        }
+    makePlaza(k)
+    const destinations = {
+        projects: isProjectModalVisibleAtom,
+        experience: isExperienceModalVisibleAtom,
+        skills: isSkillsModalVisibleAtom,
     }
-
-    addShadowedText(content.gameIntro, L.intro.x, L.intro.y, L.intro.fontSize)
-
-    // Load Gmail logo sprite
-    k.loadSprite("gmail-logo", `${BASE}logos/gmail-logo.svg`);
-
-    const socialParts = [] // circle + logo per social, exposed to tests
-    // Social circle with its logo centred ON it (the logo reads as the button) and the label just above
-    function addSocial(key, label, logoSprite, tag) {
-        const s = L.socials[key]
-        addShadowedText(label, s.x, s.y + L.socialLabelDy, L.socialLabelFontSize)
-        const circle = k.add([
-            k.circle(L.socialRadius),
-            k.anchor("center"),
-            k.area(),
-            k.pos(s.x, s.y),
-            k.color(k.Color.fromHex("#d35400")), // Darker orange
-            k.outline(L.outlineWidth, black),
-            tag
-        ])
-        const logo = circle.add([k.sprite(logoSprite), k.pos(0, 0), k.scale(1), k.anchor("center")])
-        k.onLoad(() => { logo.scale = k.vec2(L.socialLogoSize / Math.max(logo.width, logo.height)) }) // sprite sizes are only known once loaded
-        socialParts.push({ key, circle, logo })
-        return circle
-    }
-
-    const githubCircle = addSocial("github", "GitHub", "github-logo", "github-social")
-    const linkedinCircle = addSocial("linkedin", "LinkedIn", "linkedin-logo", "linkedin-social")
-    const gmailCircle = addSocial("gmail", "Gmail", "gmail-logo", "gmail-social")
-
-    // Add collision detection for social circles
-    githubCircle.onCollide("player", () => {
-        store.set(selectedLinkAtom, content.contact.github)
-        store.set(selectedLinkDescriptionAtom, "Check out my GitHub profile to see my code and projects!")
-        store.set(isSocialModalVisibleAtom, true)
+    Object.entries(destinations).forEach(([name, atom]) => {
+        makeSection(k, { name, onEnter: () => store.set(atom, true) })
     })
-
-    linkedinCircle.onCollide("player", () => {
-        store.set(selectedLinkAtom, content.contact.linkedin)
-        store.set(selectedLinkDescriptionAtom, "Connect with me on LinkedIn for professional networking!")
-        store.set(isSocialModalVisibleAtom, true)
-    })
-
-    gmailCircle.onCollide("player", () => {
-        store.set(isEmailModalVisibleAtom, true)
-    })
-
-
-    // Interactive squares/areas for portfolio sections - more spacing
-    makeSection(
-        k, 
-        k.vec2(L.sections.about.x, L.sections.about.y), 
-        "About",
-        () => {
-            store.set(isAboutModalVisibleAtom, true)
-        }
-    )
-
-    makeSection(
-        k, 
-        k.vec2(L.sections.skills.x, L.sections.skills.y), 
-        "Skills",
-        () => {
-            store.set(isSkillsModalVisibleAtom, true)
-        },
-        () => {
-        }
-    )
-
-    makeSection(
-        k,
-        k.vec2(L.sections.experience.x, L.sections.experience.y), 
-        "Experience",
-        () => {
-            store.set(isExperienceModalVisibleAtom, true)
-        }
-    )
-
-    makeSection(
-        k, 
-        k.vec2(L.sections.projects.x, L.sections.projects.y), 
-        "Projects",
-        () => {
-            store.set(isProjectModalVisibleAtom, true)
-        }
-    )
 
     // Tech icons: a cluster near Skills from load. Kick with Space / tap; they slow to a stop; closing the Skills popup puts them back.
     const TECH_LOGOS = [
@@ -217,16 +93,19 @@ export default async function initGame() {
             L.sections.skills.y + T.offsetY + Math.floor(index / 3) * T.spacing
         )
         const logo = k.add([
-            k.sprite(name),
+            k.sprite(`${["projects", "experience", "skills"][index % 3]}-ball`),
             k.scale(1),
             k.anchor("center"),
             k.area(),
             k.body(),
             k.pos(start),
+            k.z(2),
             "tech-logo",
             { start, drift: k.vec2(0, 0), logoName: name }
         ])
         logo.scale = k.vec2(ICON_KICK.size / Math.max(logo.width, logo.height)) // same on-screen size for every logo
+        const emblem = logo.add([k.sprite(name), k.anchor("center"), k.pos(0)])
+        emblem.scale = k.vec2(58 / Math.max(emblem.width, emblem.height))
         logo.onUpdate(() => {
             logo.move(logo.drift)
             logo.drift = logo.drift.scale(Math.exp(-ICON_KICK.damping * k.dt()))
@@ -264,9 +143,8 @@ export default async function initGame() {
 
     // every interactive zone as {name, x, y, w, h} in world units (test hook)
     function getZones() {
-        const sections = Object.entries(L.sections).map(([name, p]) => ({ name, x: p.x, y: p.y, w: L.sectionSize, h: L.sectionSize }))
-        const socials = Object.entries(L.socials).map(([name, p]) => ({ name, x: p.x, y: p.y, w: L.socialRadius * 2, h: L.socialRadius * 2 }))
-        return [...sections, ...socials]
+        const sections = Object.entries(L.sections).map(([name, p]) => ({ name, x: p.x, y: p.y, w: L.sectionSize, h: L.sectionHeight }))
+        return sections
     }
 
     // create player object nudged up a bit more for final positioning
@@ -274,12 +152,8 @@ export default async function initGame() {
     // test hook: lets Playwright read the player (prod build, so gated on the URL, not build mode)
     if (new URLSearchParams(window.location.search).has("test")) {
         window.__player = player
-        window.__layout = { map: L.map, zoneSize: L.sectionSize, zones: getZones(), maxTextWidth: Math.max(...textWidths) }
+        window.__layout = { map: L.map, zoneSize: L.sectionSize, zones: getZones(), maxTextWidth: L.sectionSize }
         window.__cam = () => ({ x: k.camPos().x, y: k.camPos().y, zoom: k.camScale().x })
-        window.__socials = () => socialParts.map(({ key, circle, logo }) => ({
-            key, circle: { x: circle.pos.x, y: circle.pos.y, r: L.socialRadius },
-            logo: { x: circle.pos.x + logo.pos.x, y: circle.pos.y + logo.pos.y, w: logo.width * logo.scale.x, h: logo.height * logo.scale.y },
-        }))
         window.__iconObjects = () => techLogos
         window.__icons = () => techLogos.map((l) => ({ name: l.logoName, x: l.pos.x, y: l.pos.y, startX: l.start.x, startY: l.start.y }))
     }

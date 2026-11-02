@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { sitePath } from './standardChecks.js'
+import { LAYOUT } from '../src/constants.js'
 
 // End to end, the way a player does it: real input for the last stretch of the walk, (optionally) visit Skills and close its
 // popup, then kick with a real Space / a real touch tap. The test hooks READ state and never fire a kick. The one hook that
@@ -102,10 +103,11 @@ test('/play/ walk to the icons with the keyboard, press Space: the icon is kicke
 
 test('/play/ visit Skills, click Close, walk to the icons, press Space: the icon is kicked', async ({ page }) => {
   await openGame(page)
-  await teleport(page, { x: -900, y: 0 })
-  await steer(page, { x: -900, y: 400 }, { until: '.skills-modal' }) // walk into the Skills zone; the popup opens on contact
+  const skills = LAYOUT.sections.skills
+  await teleport(page, { x: skills.x, y: skills.y - 300 })
+  await steer(page, { x: skills.x, y: skills.y }, { until: '.skills-modal' }) // walk into the Skills zone; the popup opens on contact
   await closeButton(page).click()
-  await steer(page, { x: -650, y: 175 }) // a short real walk out of the zone to the right: input works again after Close
+  await steer(page, { x: skills.x, y: skills.y - 350 }) // a short real walk out of the zone to the right: input works again after Close
   await teleport(page, { x: APPROACH_START.x + 50, y: APPROACH_START.y - 50 })
   await approachIcon(page)
   const before = await icon(page)

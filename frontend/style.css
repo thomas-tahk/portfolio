@@ -216,45 +216,6 @@ p {
     outline-offset: 2px;
 }
 
-/* About Modal Specific Styles */
-.about-content {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-}
-
-.about-text {
-    flex: 2;
-}
-
-.about-image {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-}
-
-.profile-placeholder {
-    width: 88px;
-    height: 88px;
-    background-color: var(--color3);
-    border: 2px solid var(--color1);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    color: var(--color1);
-    text-align: center;
-}
-
-.profile-photo {
-    width: 88px;
-    height: 88px;
-    object-fit: cover;
-    border: 2px solid var(--color1);
-    border-radius: 8px;
-}
-
 /* Projects Modal Specific Styles */
 .projects-list {
     display: flex;
@@ -369,3 +330,104 @@ p {
     line-height: 1.4;
 }
 
+/* Neon plaza UI; the plain portfolio has its own stylesheet. */
+:root {
+    font-family: "Trebuchet MS", sans-serif;
+    --color1: #0b1125;
+    --color2: #dcfbff;
+    --color3: #1c2946;
+    --color4: #273a5b;
+}
+
+.game-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 900;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    background: linear-gradient(#0e1630, #090e21);
+    border-bottom: 1px solid #ffc6e9;
+    box-shadow: 0 1px 5px #ff49b8, 0 3px 20px #ff49b844, 0 8px 28px #0008;
+}
+
+.game-identity strong {
+    color: #ffe0f3;
+    font-size: 20px;
+    text-shadow: 0 0 6px #ff49b8, 0 0 18px #ff49b877;
+}
+
+.game-identity p {
+    margin: 5px 0 0;
+    font-size: 12px;
+    color: #bcc9e4;
+}
+
+.game-header nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.game-header a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid #a8f3ff;
+    border-radius: 4px;
+    background: #0d1830;
+    color: #dcfbff;
+    text-decoration: none;
+    font-size: 13px;
+    box-shadow: 0 0 7px #60e6ff44, inset 0 0 8px #60e6ff11;
+}
+
+.game-header .plain-page-link {
+    position: static;
+    order: 1;
+    font-weight: normal;
+    color: #fff1c8;
+    border-color: #ffe3a0;
+    box-shadow: 0 0 7px #ffd56744;
+}
+
+.game-header a:hover, .modal-btn:hover { background: #24334f; }
+.game-header a:focus-visible, .modal-btn:focus-visible, .controls-close:focus-visible {
+    outline: 3px solid #fff1c8;
+    outline-offset: 4px;
+}
+
+.controls-message { z-index: 800; border-width: 1px; border-color: #506684; background: #101a30; }
+.controls-message p { color: #d4e2fa; }
+.modal { background: #030817aa; }
+.modal-content { background: #10182e; border: 1px solid #91e7fb; box-shadow: 0 0 24px #60e6ff22, 0 20px 70px #000a; }
+.modal-content :is(p, span, h1, h2, h3) { color: #dbe6ff; }
+.modal-content > h1 { color: #fff1c8; }
+.modal-btn-container { background: #10182e; }
+.modal-btn { color: #dcfbff; border: 1px solid #627f9a; background: #16243b; cursor: pointer; }
+.project-item, .experience-item { border-color: #354565; }
+.skill-item { background: #21334c; color: #dcfbff; }
+.skills-category h2 { border-color: #354565; }
+
+@media (max-width: 700px) {
+    .game-header { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+    .game-identity { width: 100%; }
+    .game-identity strong { font-size: 17px; }
+    .game-identity p { display: none; }
+    .game-header nav { width: 100%; gap: 7px; }
+    .game-header a { padding: 0 8px; font-size: 12px; flex: 1; }
+    .game-header .plain-page-link { flex: 1.6; white-space: nowrap; }
+}
+
+@media (max-height: 450px) {
+    .game-header { padding: 6px 8px; gap: 6px; flex-wrap: nowrap; }
+    .game-identity { width: auto; min-width: 0; flex: 1; }
+    .game-header nav { width: auto; gap: 4px; }
+    .game-header a, .game-header .plain-page-link { flex: none; min-width: 44px; padding: 0 5px; font-size: 11px; }
+    .game-identity p { display: none; }
+    .game-identity strong { font-size: 14px; }
+}

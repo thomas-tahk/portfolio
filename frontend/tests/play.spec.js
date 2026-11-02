@@ -58,17 +58,15 @@ test.describe('phone touch', () => {
     expect(end.x, 'player x after touch-hold right').toBeGreaterThan(start.x)
   })
 
-  test('/play/ touch-holding toward the About zone opens the About modal', async ({ page }) => {
+  test('/play/ touch-holding toward the Projects zone opens the Projects modal', async ({ page }) => {
     await page.goto(sitePath('/play/') + '?test')
     await page.waitForFunction(() => window.__player)
 
-    // About zone sits 400-600 world units above the spawn point (LAYOUT in constants.js). The player moves 700
-    // units/s and walks straight through the zone (closing the modal), so release the touch
-    // the moment the modal appears rather than timing a fixed hold.
+    // Follow the pink lane toward the Projects platform; release when its panel opens.
     const cdp = await page.context().newCDPSession(page)
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 375 / 2, y: 812 / 2 - 200, id: 1 }] })
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 375 / 2 - 150, y: 812 / 2 - 86, id: 1 }] })
     // waitForSelector is the assertion: it throws if the modal never opens
-    await page.waitForSelector('.about-modal', { timeout: 3000 })
+    await page.waitForSelector('.projects-modal', { timeout: 6000 })
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   })
 })
@@ -84,20 +82,20 @@ test.describe('phone modals stay open', () => {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   }
 
-  test('/play/ About modal is still open after holding through the zone for 1.5s', async ({ page }) => {
+  test('/play/ Projects modal is still open after holding through the zone until entering the zone', async ({ page }) => {
     await page.goto(sitePath('/play/') + '?test')
     await page.waitForFunction(() => window.__player)
 
-    await holdTouchAt(page, 375 / 2, 812 / 2 - 200, 1500)
+    await holdTouchAt(page, 375 / 2 - 150, 812 / 2 - 86, 2400)
 
-    await expect(page.locator('.about-modal')).toBeVisible()
+    await expect(page.locator('.projects-modal')).toBeVisible()
   })
 
   test('/play/ modal closes with its Close button, and input is frozen while it is open', async ({ page }) => {
     await page.goto(sitePath('/play/') + '?test')
     await page.waitForFunction(() => window.__player)
-    await holdTouchAt(page, 375 / 2, 812 / 2 - 200, 1500)
-    await expect(page.locator('.about-modal')).toBeVisible()
+    await holdTouchAt(page, 375 / 2 - 150, 812 / 2 - 86, 2400)
+    await expect(page.locator('.projects-modal')).toBeVisible()
 
     const before = await page.evaluate(() => ({ x: window.__player.pos.x, y: window.__player.pos.y }))
     await page.keyboard.down('ArrowRight')
@@ -106,8 +104,8 @@ test.describe('phone modals stay open', () => {
     const after = await page.evaluate(() => ({ x: window.__player.pos.x, y: window.__player.pos.y }))
     expect(after, 'player position while modal open').toEqual(before)
 
-    await page.locator('.about-modal .modal-btn', { hasText: 'Close' }).tap()
-    await expect(page.locator('.about-modal')).toHaveCount(0)
+    await page.locator('.projects-modal .modal-btn', { hasText: 'Close' }).tap()
+    await expect(page.locator('.projects-modal')).toHaveCount(0)
   })
 
   test('/play/ Escape and tapping outside dismiss a modal', async ({ page }) => {
@@ -163,14 +161,14 @@ for (const size of [{ width: 375, height: 812 }, { width: 1280, height: 800 }]) 
     await page.waitForFunction(() => window.__layout)
     const { map, zoneSize, zones, maxTextWidth } = await page.evaluate(() => window.__layout)
 
-    // the widest world text (the intro) fits inside the viewport at load zoom
+    // The widest sign fits inside a viewport at load zoom
     expect(maxTextWidth * zoomForScreen(size.width, size.height), 'widest text on screen (px)').toBeLessThanOrEqual(size.width)
 
     // spawn is clear of every zone: no modal is open right after load, before any input
     await page.waitForTimeout(500)
     await expect(page.locator('.modal')).toHaveCount(0)
 
-    expect(zones.length, 'zones exposed').toBeGreaterThanOrEqual(7)
+    expect(zones.length, 'zones exposed').toBe(3)
     for (const z of zones) {
       expect(z.x - z.w / 2, `${z.name} left edge`).toBeGreaterThanOrEqual(map.minX)
       expect(z.x + z.w / 2, `${z.name} right edge`).toBeLessThanOrEqual(map.maxX)

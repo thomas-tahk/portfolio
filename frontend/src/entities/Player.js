@@ -6,17 +6,23 @@ import { wrapToMap } from "../utils";
 export default function makePlayer(k, posVec2, speed, onKick, map) {
     const player = k.add([
         k.sprite("player", {anim: "walk-down-idle"}),
-        k.scale(8),
+        k.scale(4),
         k.anchor("center"),
         k.area({ shape: new k.Rect(k.vec2(0), 5, 10)}),
         k.body(),
         k.pos(posVec2),
+        k.z(10),
         "player",
         {
             direction: k.vec2(0, 0),
             directionName: "walk-down",
         }
     ])
+
+    player.onUpdate(() => {
+        const scale = Math.max(4, 1 / k.camScale().x)
+        if (player.scale.x !== scale) player.scale = k.vec2(scale)
+    })
 
     k.camPos(player.pos) // start centred on the player (no initial slide)
 
@@ -30,7 +36,10 @@ export default function makePlayer(k, posVec2, speed, onKick, map) {
     // Held keys are tracked here (not via k.isKeyDown) so they can be cleared when focus is lost:
     // the keyup/mouseup/touchend that would release them never arrives while the tab or window is unfocused.
     const heldKeys = new Set()
-    document.addEventListener("keydown", (event) => heldKeys.add(event.code))
+    const isUIControl = (event) => event.target instanceof Element && event.target.closest("a, button, input, textarea, select")
+    document.addEventListener("keydown", (event) => {
+        if (!isUIControl(event)) heldKeys.add(event.code)
+    })
     document.addEventListener("keyup", (event) => heldKeys.delete(event.code))
     const isHeld = (...codes) => codes.some((code) => heldKeys.has(code))
     const releaseAllInput = () => {
@@ -45,7 +54,7 @@ export default function makePlayer(k, posVec2, speed, onKick, map) {
         if (performance.now() - lastTouchAt < SYNTHETIC_MOUSE_MS) return
         isMouseDown = true
     })
-    game.addEventListener("mouseup", () => {
+    window.addEventListener("mouseup", () => {
         isMouseDown = false
     })  
     game.addEventListener("touchstart", () => {
@@ -164,7 +173,7 @@ export default function makePlayer(k, posVec2, speed, onKick, map) {
     // Space is read from the document like the movement keys: Kaplay's own key events only reach the canvas,
     // which loses focus after any HTML click (e.g. a popup's Close button), leaving WASD working but Space dead.
     document.addEventListener("keydown", (event) => {
-        if (event.code !== "Space" || event.repeat || isAnyModalOpen()) return
+        if (event.code !== "Space" || event.repeat || isAnyModalOpen() || isUIControl(event)) return
         event.preventDefault() // don't also press whichever button last took focus
         onKick()
     })

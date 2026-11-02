@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { sitePath } from './standardChecks.js'
 
-const MODALS = ['about', 'projects', 'experience', 'skills', 'email', 'social']
+const MODALS = ['projects', 'experience', 'skills']
 const VIEWPORTS = [
   { width: 375, height: 812 },
   { width: 1280, height: 800 },
@@ -58,6 +58,10 @@ test('/play/ plain-version pill is covered by popups and reachable by Tab at 390
   await page.evaluate((all) => all.forEach((n) => window.__openModal(n, false)), MODALS)
   await page.locator('#game').focus()
   await page.keyboard.press('Tab') // canvas is last in the page: leaves to the browser chrome
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('link', { name: 'GitHub', exact: true })).toBeFocused()
+  await page.keyboard.press('Tab')
+  await page.keyboard.press('Tab')
   await page.keyboard.press('Tab')
   await expect(pill).toBeFocused()
 })

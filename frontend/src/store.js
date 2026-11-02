@@ -1,14 +1,6 @@
 import { atom, createStore } from 'jotai';
 import content from './content.json';
 
-// the part of the app where you 'run into' links to different sites
-export const isSocialModalVisibleAtom = atom(false);
-export const selectedLinkAtom = atom(null);
-export const selectedLinkDescriptionAtom = atom("");
-
-export const isEmailModalVisibleAtom = atom(false);
-export const emailAtom = atom(content.contact.email);
-
 export const isProjectModalVisibleAtom = atom(false);
 export const chosenProjectDataAtom = atom({
     title: "Projects",
@@ -20,13 +12,6 @@ export const chosenProjectDataAtom = atom({
             description: project.description,
             links: project.links.map((link, linkId) => ({ id: linkId, name: link.label, link: link.url }))
         }))
-})
-
-export const isAboutModalVisibleAtom = atom(false);
-export const aboutDataAtom = atom({
-    name: content.about.name,
-    description: content.about.text,
-    profilePic: `${import.meta.env.BASE_URL}${content.about.photo}`
 })
 
 export const isSkillsModalVisibleAtom = atom(false);
@@ -46,10 +31,7 @@ export const cameraZoomValueAtom = atom({value : 1})
 export const store = createStore()
 
 const modalAtoms = [
-    isSocialModalVisibleAtom,
-    isEmailModalVisibleAtom,
     isProjectModalVisibleAtom,
-    isAboutModalVisibleAtom,
     isSkillsModalVisibleAtom,
     isExperienceModalVisibleAtom,
 ]
@@ -69,11 +51,8 @@ if (new URLSearchParams(window.location.search).has("test")) {
     window.__openModal = (atomName, open = true) => {
         const atoms = {
             projects: isProjectModalVisibleAtom,
-            about: isAboutModalVisibleAtom,
             experience: isExperienceModalVisibleAtom,
             skills: isSkillsModalVisibleAtom,
-            email: isEmailModalVisibleAtom,
-            social: isSocialModalVisibleAtom,
         }
         store.set(atoms[atomName], open)
     }

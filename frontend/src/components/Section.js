@@ -1,54 +1,24 @@
-import {PALETTE, LAYOUT} from "../constants"
+import { LAYOUT } from "../constants"
+import { DESTINATIONS } from "./plazaArt"
 
-export default function makeSection(k, posVec2, sectionName, onEnter, onExit) {
-    // Sizes are fixed world units (constants.js LAYOUT), not screen fractions
-    const sectionSize = LAYOUT.sectionSize;
-    const fontSize = LAYOUT.sectionFontSize;
-    const outlineWidth = LAYOUT.outlineWidth;
-    
+export default function makeSection(k, { name, onEnter }) {
+    const position = LAYOUT.sections[name]
+    const palette = DESTINATIONS[name]
     const section = k.add([
-        k.rect(sectionSize, sectionSize, {radius: 10}),
-        k.anchor("center"), 
-        k.area(),
-        k.pos(posVec2),
-        k.color(k.Color.fromHex("#d35400")),
-        k.outline(outlineWidth, k.Color.fromHex("#000000")),
-        sectionName
+        k.pos(position.x, position.y), k.z(-1),
+        k.area({ shape: new k.Rect(k.vec2(-LAYOUT.sectionSize / 2, -110), LAYOUT.sectionSize, 220) }),
+        name,
     ])
-
-    // Background text (outline effect)
-    section.add([
-        k.text(sectionName, {
-            font: "ibm-bold", 
-            size: fontSize,
-        }),
-        k.color(k.Color.fromHex("#000000")),
-        k.anchor("center"),
-        k.pos(2, -sectionSize * 0.75), // Responsive positioning
-    ])
-    
-    // Foreground text
-    section.add([
-        k.text(sectionName, {
-            font: "ibm-bold", 
-            size: fontSize,
-        }),
-        k.color(k.Color.fromHex("#f39c12")),
-        k.anchor("center"),
-        k.pos(0, -sectionSize * 0.75),
-    ])
-
-    if (onEnter) {
-        section.onCollide("player", () => {
-            onEnter(section)
-        })
-    }
-
-    if (onExit) {
-        section.onCollideEnd("player", () => {
-            onExit(section)
-        })
-    }
-
+    section.add([k.sprite(`${name}-platform`), k.anchor("center"), k.pos(0, -70)])
+    const title = section.add([k.text(palette.title, { font: "ibm-bold", size: 52 }),
+        k.anchor("center"), k.pos(0, -170), k.color(k.Color.fromHex(palette.core))])
+    const subtitle = section.add([k.text(palette.subtitle, { font: "ibm-regular", size: 23 }),
+        k.anchor("center"), k.pos(0, -118), k.color(k.Color.fromHex("#bbc7e1"))])
+    section.onUpdate(() => {
+        const size = Math.max(52, 13 / k.camScale().x)
+        if (title.textSize !== size) title.textSize = size
+        subtitle.hidden = k.camScale().x < 0.25
+    })
+    section.onCollide("player", onEnter)
     return section
-}
+}
