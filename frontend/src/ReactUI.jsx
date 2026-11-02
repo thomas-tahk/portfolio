@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { closeAllModals } from "./store";
 import GameHeader from "./reactComponents/GameHeader";
+import ResetPlaza from "./reactComponents/ResetPlaza";
 import ControlsMessage from "./reactComponents/ControlsMessage";
 import ProjectModal from "./reactComponents/ProjectModal";
 import SkillsModal from "./reactComponents/SkillsModal";
@@ -16,6 +17,7 @@ export default function ReactUI() {
     return (
         <>
             <GameHeader />
+            <ResetPlaza />
             <ControlsMessage />
             <ProjectModal />
             <SkillsModal />

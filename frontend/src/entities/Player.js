@@ -4,6 +4,7 @@ import { wrapToMap } from "../utils";
 
 // make instance of a player with the following properties
 export default function makePlayer(k, posVec2, speed, onKick, map) {
+    const spawn = posVec2.clone()
     const player = k.add([
         k.sprite("player", {anim: "walk-down-idle"}),
         k.scale(4),
@@ -50,6 +51,15 @@ export default function makePlayer(k, posVec2, speed, onKick, map) {
         heldKeys.clear()
         isMouseDown = false
         touchStartedAt = null
+    }
+    player.resetToSpawn = () => {
+        releaseAllInput()
+        player.pos = spawn.clone()
+        player.vel = k.vec2(0)
+        player.direction = k.vec2(0)
+        player.directionName = "walk-down"
+        if (player.getCurAnim()) player.play("walk-down-idle")
+        k.camPos(player.pos)
     }
     game.addEventListener("focusout", releaseAllInput)
     window.addEventListener("blur", releaseAllInput)
@@ -120,9 +130,8 @@ export default function makePlayer(k, posVec2, speed, onKick, map) {
         }
         // implement animations based on direction of player
         // when to play idle
-        if (player.direction.eq(k.vec2(0, 0)) && 
-        !player.getCurAnim().name.includes("idle")) {
-            player.play(`${player.directionName}-idle`)
+        if (player.direction.eq(k.vec2(0, 0))) {
+            if (!player.getCurAnim().name.includes("idle")) player.play(`${player.directionName}-idle`)
             return
         }
 

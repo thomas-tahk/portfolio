@@ -431,3 +431,27 @@ p {
     .game-identity p { display: none; }
     .game-identity strong { font-size: 14px; }
 }
+
+.plaza-reset {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    z-index: 900;
+    min-height: 44px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 13px;
+    color: #dcfbff;
+    background: #101a30;
+    border: 1px solid #91e7fb;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 10px #60e6ff22;
+}
+
+.plaza-reset:hover { background: #24334f; }
+.plaza-reset:focus-visible { outline: 3px solid #fff1c8; outline-offset: 3px; }
+
+@media (max-width: 700px) {
+    .controls-message { bottom: 72px; }
+}

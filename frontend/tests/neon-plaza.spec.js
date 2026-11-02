@@ -67,8 +67,9 @@ for (const phone of [false, true]) {
       await page.getByRole('button', { name: 'Close', exact: true }).click()
       await expect(page.locator('.projects-modal')).toHaveCount(0)
       await page.locator('#game').focus()
-      await walk(page, { x: projects.x, y: 220 })
-      const icon = await page.evaluate(() => window.__icons()[2])
+      const icon = await page.evaluate(() => window.__icons()[0])
+      const skills = await page.evaluate(() => window.__layout.zones.find((zone) => zone.name === 'skills'))
+      await walk(page, { x: skills.x - skills.w / 2 - 200, y: icon.startY })
       await walk(page, { x: icon.x, y: icon.y, within: 115, ball: true })
       const before = await page.evaluate(() => window.__icons())
       const distance = await page.evaluate(() => Math.min(...window.__icons().map(({ x, y }) =>

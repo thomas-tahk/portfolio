@@ -8,10 +8,13 @@ import { LAYOUT } from '../src/constants.js'
 const KICKED = 2 // top-right icon of the 3x3 cluster
 const icon = (page) => page.evaluate((i) => window.__icons()[i], KICKED)
 const playerPos = (page) => page.evaluate(() => ({ x: window.__player.pos.x, y: window.__player.pos.y }))
-const ICON = { x: -750, y: 500 } // start position of that icon
+const ICON = {
+  x: LAYOUT.sections.skills.x + LAYOUT.techLogos.offsetX + 2 * LAYOUT.techLogos.spacing,
+  y: LAYOUT.sections.skills.y + LAYOUT.techLogos.offsetY,
+}
 // Come at it from up-and-right (outside the Skills popup zone): the kick then flies down-left, between its neighbours.
 const BESIDE_ICON = { x: ICON.x + 70, y: ICON.y - 70 } // phone: finger target
-const APPROACH_START = { x: ICON.x + 200, y: ICON.y - 200 }
+const APPROACH_START = { x: ICON.x + 200, y: ICON.y - 100 }
 const closeButton = (page) => page.getByRole('button', { name: 'Close' })
 
 async function openGame(page) {

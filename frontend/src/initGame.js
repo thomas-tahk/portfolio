@@ -5,7 +5,7 @@ import makePlayer from "./entities/Player";
 import { wrapToMap } from "./utils";
 import loadPlazaArt from "./components/plazaArt";
 import makePlaza from "./components/Plaza";
-import { cameraZoomValueAtom, store, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom } from "./store";
+import { cameraZoomValueAtom, resetPlazaRequestAtom, closeAllModals, store, isSkillsModalVisibleAtom, isExperienceModalVisibleAtom, isProjectModalVisibleAtom } from "./store";
 
 const BASE = import.meta.env.BASE_URL
 
@@ -73,7 +73,7 @@ export default async function initGame() {
         makeSection(k, { name, onEnter: () => store.set(atom, true) })
     })
 
-    // Tech icons: a cluster near Skills from load. Kick with Space / tap; they slow to a stop; closing the Skills popup puts them back.
+    // Tech icons: a cluster below Skills from load. Kick with Space / tap; they slow to a stop; closing the Skills popup puts them back.
     const TECH_LOGOS = [
         "javascript-logo",
         "typescript-logo",
@@ -132,13 +132,17 @@ export default async function initGame() {
         nearest.drift = nearest.pos.sub(player.pos).unit().scale(ICON_KICK.speed)
     }
 
-    // closing the Skills popup snaps every icon back to its home spot
-    store.sub(isSkillsModalVisibleAtom, () => {
-        if (store.get(isSkillsModalVisibleAtom)) return
+    function resetTechLogos() {
         techLogos.forEach((logo) => {
             logo.pos = logo.start.clone()
-            logo.drift = k.vec2(0, 0)
+            logo.drift = k.vec2(0)
+            logo.vel = k.vec2(0)
         })
+    }
+
+    // Closing Skills restores its tech balls; Reset plaza also restores the player.
+    store.sub(isSkillsModalVisibleAtom, () => {
+        if (!store.get(isSkillsModalVisibleAtom)) resetTechLogos()
     })
 
     // every interactive zone as {name, x, y, w, h} in world units (test hook)
@@ -149,6 +153,11 @@ export default async function initGame() {
 
     // create player object nudged up a bit more for final positioning
     const player = makePlayer(k, k.vec2(L.spawn.x, L.spawn.y), 700, kickNearestLogo, L.map)
+    store.sub(resetPlazaRequestAtom, () => {
+        closeAllModals()
+        resetTechLogos()
+        player.resetToSpawn()
+    })
     // test hook: lets Playwright read the player (prod build, so gated on the URL, not build mode)
     if (new URLSearchParams(window.location.search).has("test")) {
         window.__player = player

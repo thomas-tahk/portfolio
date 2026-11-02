@@ -22,7 +22,7 @@ export const LAYOUT = {
     },
     sectionSize: 650,
     sectionHeight: 220,
-    techLogos: { offsetX: -1700, offsetY: -150, spacing: 150 },
+    techLogos: { offsetX: -150, offsetY: 300, spacing: 150 },
 }
 
 // Camera zoom so the screen shows about VIEW world units: fit a VIEW_W x VIEW_H window into the screen

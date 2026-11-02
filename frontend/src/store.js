@@ -30,6 +30,8 @@ export const cameraZoomValueAtom = atom({value : 1})
 
 export const store = createStore()
 
+export const resetPlazaRequestAtom = atom(0)
+
 const modalAtoms = [
     isProjectModalVisibleAtom,
     isSkillsModalVisibleAtom,

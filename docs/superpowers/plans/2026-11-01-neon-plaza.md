@@ -54,3 +54,9 @@ Files: layout-dependent `frontend/tests/*.spec.js`, `docs/chief/STATE.md`.
 - Compact header verified at 320×320: no horizontal overflow; all four links retain 44px height.
 - Phone journey test now aims at the ball centre and stops inside kick range; no teleports, state writes or mocked project navigation.
 - Ruling: acceptance kicks any reachable ball, matching the user gate; watching only the original ball was wrong after steering finished beside a neighbor. Batch touch-start/end as the existing kick tests do, preventing slow CDP round trips from turning a tap into a hold.
+
+## Final pass and production release (authorized 2026-11-02)
+- [x] Add a visible Reset plaza control: clear held input, close panels, restore player spawn/direction/camera and all icon positions/drift/velocity; retain kick strength and avatar size.
+- [x] Place 3×3 tech icons below Skills (relative offsets -150,+300); no fourth destination/road. Update coordinate-dependent input tests.
+- [x] Verify desktop/touch walk→kick→reset and small screens; review approved; 27 final release checks pass. Full CI uses committed content (existing feed edits excluded).
+- [ ] Push PR, wait for green checks, mark ready and merge (explicit user authorization), wait for Pages deployment, verify same transaction on live site and plain-page link.
