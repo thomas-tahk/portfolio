@@ -1,53 +1,30 @@
-# Thomas Tahk Portfolio Game
+# Thomas Tahk Portfolio
 
-An interactive 2D portfolio website built as a game, where visitors can explore different sections by moving a character around the game world.
+A developer portfolio with a browsable home page and a playable 2D version.
 
-## Features
+## Live site
 
-- **Interactive 2D Game**: Navigate using WASD, arrow keys, or mouse/touch
-- **Portfolio Sections**: About, Skills, Experience, Projects, and Social links
-- **Physics-Enabled Elements**: Interactive tech logos that can be pushed around
-- **Modal System**: Detailed information displayed in React modals
-- **Responsive Design**: Works across different screen sizes
-- **Social Integration**: Direct links to GitHub, LinkedIn, and email
-
-## Tech Stack
-
-- **Frontend**: React 19 + Vite
-- **Game Engine**: Kaplay (formerly Kaboom.js)
-- **State Management**: Jotai
-- **Styling**: CSS with responsive design
-- **Deployment**: GitHub Pages with GitHub Actions
-
-## Getting Started
-
-1. Clone the repository
-2. Navigate to the frontend directory: `cd frontend`
-3. Install dependencies: `npm install`
-4. Start development server: `npm run dev`
-5. Open http://localhost:5173
-
-## Building for Production
-
-```bash
-cd frontend
-npm run build
-```
-
-## Live Demo
-
-Visit the live portfolio game at: https://thomas-tahk.github.io/thomas-tahk-portfolio-game/
+- [Portfolio](https://thomas-tahk.github.io/portfolio/) — featured projects, experience, contact links, and a recent-work feed of merged GitHub pull requests from selected public repositories. Settings include dark mode, color palettes, and a QR code for the page.
+- [Play the game](https://thomas-tahk.github.io/portfolio/play/) — explore a neon plaza, enter zones for projects, experience, and skills, and kick tech icons around. Move with WASD, arrow keys, mouse, or touch-and-hold. Press Space or tap to kick. Use **Reset plaza** to restore the starting positions.
 
 ## Development
 
-The project uses:
-- Vite for fast development and building
-- ESLint for code quality
-- Responsive percentage-based positioning for cross-device compatibility
-- GitHub Actions for automated deployment
+```bash
+cd frontend
+npm ci
+npm run dev
+```
 
-## Project Structure
+Open [the local portfolio](http://localhost:5173/portfolio/) or [the local game](http://localhost:5173/portfolio/play/).
 
-- `/frontend` - Main application code
-- `/documentation` - Development notes and progress tracking
-- `.github/workflows` - GitHub Actions deployment configuration
+Run `npm run build` from `frontend` to build both pages into `frontend/dist`. GitHub Actions deploys `main` to GitHub Pages.
+
+## Project structure
+
+- `frontend/src/home/` — portfolio home page
+- `frontend/play/` — game entry page
+- `frontend/src/content.json` — shared portfolio content
+- `frontend/tests/` — Playwright tests
+- `.github/workflows/` — checks and deployment workflows
+
+The site uses React 19 and Vite. The game uses KAPLAY and Jotai.
