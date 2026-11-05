@@ -6,11 +6,11 @@ const playerPos = (page) => page.evaluate(() => ({ x: window.__player.pos.x, y: 
 
 async function openGame(page) {
   await page.goto(sitePath('/play/') + '?test')
-  await page.waitForFunction(() => window.__icons && window.__icons().length === 9 && window.__player)
+  await page.waitForFunction(() => window.__icons && window.__icons().length === 15 && window.__player)
 }
 
-// Top-right icon of the 3x3 cluster: nothing to its right or above, so a kick away from the player is unobstructed.
-const KICKED = 2
+// Top-right icon of the 5×3 cluster: nothing to its right or above, so a kick away from the player is unobstructed.
+const KICKED = 4
 
 // Put the player just right of that icon (outside the Skills zone, so no modal opens). Returns the icon.
 async function standBesideFirstIcon(page) {
@@ -29,7 +29,7 @@ const expectIconMoved = (page, from) => expect.poll(async () => {
 test('/play/ tech icons exist on load at their start positions', async ({ page }) => {
   await openGame(page)
   const list = await icons(page)
-  expect(list).toHaveLength(9)
+  expect(list).toHaveLength(15)
   for (const i of list) expect([i.x, i.y], `${i.name} at start`).toEqual([i.startX, i.startY])
 })
 

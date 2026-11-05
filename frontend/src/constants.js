@@ -22,7 +22,7 @@ export const LAYOUT = {
     },
     sectionSize: 650,
     sectionHeight: 220,
-    techLogos: { offsetX: -150, offsetY: 300, spacing: 150 },
+    techLogos: { offsetX: -300, offsetY: 300, spacing: 150, columns: 5 },
 }
 
 // Camera zoom so the screen shows about VIEW world units: fit a VIEW_W x VIEW_H window into the screen
@@ -41,4 +41,4 @@ export function zoomForScreen(width, height, headerHeight) {
 export const TAP_MAX_MS = 250
 
 // Tech icons: on-screen size, kick strength (world units/s), how fast they slow (higher = stops sooner), and reach in player widths
-export const ICON_KICK = { size: 100, speed: 2400, damping: 3, reachInPlayerWidths: 1.5, playerWidth: 40 }
+export const ICON_KICK = { size: 120, speed: 2400, damping: 3, reachInPlayerWidths: 1.5, playerWidth: 40 }

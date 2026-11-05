@@ -5,11 +5,11 @@ import { LAYOUT } from '../src/constants.js'
 // End to end, the way a player does it: real input for the last stretch of the walk, (optionally) visit Skills and close its
 // popup, then kick with a real Space / a real touch tap. The test hooks READ state and never fire a kick. The one hook that
 // writes is `teleport` (sets the player's position), used to skip long legs: see the comment above it.
-const KICKED = 2 // top-right icon of the 3x3 cluster
+const KICKED = 4 // top-right icon of the 5×3 cluster
 const icon = (page) => page.evaluate((i) => window.__icons()[i], KICKED)
 const playerPos = (page) => page.evaluate(() => ({ x: window.__player.pos.x, y: window.__player.pos.y }))
 const ICON = {
-  x: LAYOUT.sections.skills.x + LAYOUT.techLogos.offsetX + 2 * LAYOUT.techLogos.spacing,
+  x: LAYOUT.sections.skills.x + LAYOUT.techLogos.offsetX + KICKED * LAYOUT.techLogos.spacing,
   y: LAYOUT.sections.skills.y + LAYOUT.techLogos.offsetY,
 }
 // Come at it from up-and-right (outside the Skills popup zone): the kick then flies down-left, between its neighbours.
@@ -19,7 +19,7 @@ const closeButton = (page) => page.getByRole('button', { name: 'Close' })
 
 async function openGame(page) {
   await page.goto(sitePath('/play/') + '?test')
-  await page.waitForFunction(() => window.__icons && window.__icons().length === 9 && window.__player)
+  await page.waitForFunction(() => window.__icons && window.__icons().length === 15 && window.__player)
   await page.waitForFunction(() => Math.hypot(window.__cam().x - window.__player.pos.x, window.__cam().y - window.__player.pos.y) < 5)
 }
 

@@ -9,6 +9,38 @@ import { cameraZoomValueAtom, resetPlazaRequestAtom, closeAllModals, store, isSk
 
 const BASE = import.meta.env.BASE_URL
 
+const TECH_SPRITES = {
+    "javascript-logo": "js-logo.png",
+    "typescript-logo": "ts-logo.png",
+    "react-logo": "react-logo.png",
+    "nextjs-logo": "nextjs-logo.png",
+    "html-logo": "html-logo.png",
+    "css-logo": "css-logo.png",
+    "tailwind-logo": "tailwind-logo.png",
+    "python-logo": "python-logo.png",
+    "postgres-logo": "postgres-logo.png",
+}
+
+const TECH_BADGES = {
+    "nodejs-logo": "Node.js",
+    "docker-logo": "Docker",
+    "git-logo": "Git",
+    "vite-logo": "Vite",
+    "godot-logo": "Godot",
+    "servicenow-logo": "Service\nNow",
+}
+
+function addEmblem(k, logo, name) {
+    const badge = TECH_BADGES[name]
+    if (badge) {
+        logo.add([k.text(badge, { font: "ibm-bold", size: 19, align: "center" }),
+            k.color(11, 16, 38), k.anchor("center"), k.pos(0)])
+        return
+    }
+    const emblem = logo.add([k.sprite(name), k.anchor("center"), k.pos(0)])
+    emblem.scale = k.vec2(58 / Math.max(emblem.width, emblem.height))
+}
+
 export default async function initGame() {
     const k = makeKaplayCtx()
     loadPlazaArt(k)
@@ -39,15 +71,7 @@ export default async function initGame() {
     // loading various fonts and sprites to be used in the project
     k.loadFont("ibm-regular", `${BASE}fonts/IBMPlexSans-Regular.ttf`);
     k.loadFont("ibm-bold", `${BASE}fonts/IBMPlexSans-Bold.ttf`);
-    k.loadSprite("javascript-logo", `${BASE}logos/js-logo.png`);
-    k.loadSprite("typescript-logo", `${BASE}logos/ts-logo.png`);
-    k.loadSprite("react-logo", `${BASE}logos/react-logo.png`);
-    k.loadSprite("nextjs-logo", `${BASE}logos/nextjs-logo.png`);
-    k.loadSprite("postgres-logo", `${BASE}logos/postgres-logo.png`);
-    k.loadSprite("html-logo", `${BASE}logos/html-logo.png`);
-    k.loadSprite("css-logo", `${BASE}logos/css-logo.png`);
-    k.loadSprite("tailwind-logo", `${BASE}logos/tailwind-logo.png`);
-    k.loadSprite("python-logo", `${BASE}logos/python-logo.png`);
+    Object.entries(TECH_SPRITES).forEach(([name, file]) => k.loadSprite(name, `${BASE}logos/${file}`))
     // zoom is derived from the screen size (see zoomForScreen) and recomputed on resize/rotate
     const fitZoom = () => store.set(cameraZoomValueAtom, zoomForScreen(k.width(), k.height(), document.querySelector(".game-header")?.getBoundingClientRect().height))
     fitZoom()
@@ -74,23 +98,11 @@ export default async function initGame() {
     })
 
     // Tech icons: a cluster below Skills from load. Kick with Space / tap; they slow to a stop; closing the Skills popup puts them back.
-    const TECH_LOGOS = [
-        "javascript-logo",
-        "typescript-logo",
-        "react-logo",
-        "nextjs-logo",
-        "html-logo",
-        "css-logo",
-        "tailwind-logo",
-        "python-logo",
-        "postgres-logo"
-    ]
-
     function addTechLogo(name, index) {
         const T = L.techLogos
         const start = k.vec2(
-            L.sections.skills.x + T.offsetX + (index % 3) * T.spacing,
-            L.sections.skills.y + T.offsetY + Math.floor(index / 3) * T.spacing
+            L.sections.skills.x + T.offsetX + (index % T.columns) * T.spacing,
+            L.sections.skills.y + T.offsetY + Math.floor(index / T.columns) * T.spacing
         )
         const logo = k.add([
             k.sprite(`${["projects", "experience", "skills"][index % 3]}-ball`),
@@ -104,8 +116,7 @@ export default async function initGame() {
             { start, drift: k.vec2(0, 0), logoName: name }
         ])
         logo.scale = k.vec2(ICON_KICK.size / Math.max(logo.width, logo.height)) // same on-screen size for every logo
-        const emblem = logo.add([k.sprite(name), k.anchor("center"), k.pos(0)])
-        emblem.scale = k.vec2(58 / Math.max(emblem.width, emblem.height))
+        addEmblem(k, logo, name)
         logo.onUpdate(() => {
             logo.move(logo.drift)
             logo.drift = logo.drift.scale(Math.exp(-ICON_KICK.damping * k.dt()))
@@ -116,7 +127,7 @@ export default async function initGame() {
     }
 
     let techLogos = []
-    k.onLoad(() => { techLogos = TECH_LOGOS.map(addTechLogo) }) // sprite sizes are only known once loaded
+    k.onLoad(() => { techLogos = [...Object.keys(TECH_SPRITES), ...Object.keys(TECH_BADGES)].map(addTechLogo) }) // sprite sizes are only known once loaded
 
     // kick the nearest icon if there is at most 1.5 player widths of empty space between it and the player
     function kickNearestLogo() {
