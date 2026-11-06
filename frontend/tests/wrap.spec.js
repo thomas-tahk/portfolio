@@ -7,7 +7,7 @@ const pos = (page) => page.evaluate(() => ({ x: window.__player.pos.x, y: window
 
 async function openGame(page) {
   await page.goto(sitePath('/play/') + '?test')
-  await page.waitForFunction(() => window.__player && window.__iconObjects && window.__iconObjects().length === 9)
+  await page.waitForFunction(() => window.__player && window.__iconObjects && window.__iconObjects().length === 15)
 }
 
 // Start 100 units inside an edge (on the clear axis), hold the key past the edge, expect re-entry from the opposite side.

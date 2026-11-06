@@ -14,7 +14,7 @@ for (const phone of [false, true]) {
     test('walk, kick, reset restores player, camera and every ball; movement works again', async ({ page }) => {
       test.setTimeout(60000)
       await page.goto(sitePath('/play/') + '?test')
-      await page.waitForFunction(() => window.__icons?.().length === 9)
+      await page.waitForFunction(() => window.__icons?.().length === 15)
       const reset = page.getByRole('button', { name: 'Reset plaza', exact: true })
       await expect(reset).toBeVisible()
       const walk = phone ? walkWithFinger : walkWithKeys
@@ -54,7 +54,7 @@ for (const phone of [false, true]) {
 
 test('tech icons start beside Skills and outside its panel trigger', async ({ page }) => {
   await page.goto(sitePath('/play/') + '?test')
-  await page.waitForFunction(() => window.__icons?.().length === 9)
+  await page.waitForFunction(() => window.__icons?.().length === 15)
   const skills = await page.evaluate(() => window.__layout.zones.find((zone) => zone.name === 'skills'))
   for (const icon of await page.evaluate(() => window.__icons())) {
     expect(Math.hypot(icon.startX - skills.x, icon.startY - skills.y)).toBeLessThan(700)

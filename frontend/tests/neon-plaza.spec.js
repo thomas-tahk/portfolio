@@ -52,7 +52,7 @@ for (const phone of [false, true]) {
     test('walk from spawn, visit Projects, follow a real link, close, walk to a ball and kick', async ({ page }) => {
       test.setTimeout(60000)
       await page.goto(sitePath('/play/') + '?test')
-      await page.waitForFunction(() => window.__icons?.().length === 9)
+      await page.waitForFunction(() => window.__icons?.().length === 15)
       const walk = phone ? walkWithFinger : walkWithKeys
       const projects = await page.evaluate(() => window.__layout.zones.find((z) => z.name === 'projects'))
       await walk(page, projects, '.projects-modal')
@@ -90,7 +90,7 @@ for (const phone of [false, true]) {
 test('reduced motion stops lane markings', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto(sitePath('/play/') + '?test')
-  await page.waitForFunction(() => window.__icons?.().length === 9)
+  await page.waitForFunction(() => window.__icons?.().length === 15)
   await page.waitForTimeout(300)
   const canvas = page.locator('#game')
   const first = await canvas.screenshot()
