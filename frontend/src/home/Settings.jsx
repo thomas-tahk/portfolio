@@ -117,7 +117,7 @@ function usePanel() {
   return { open, setOpen, gear, panel }
 }
 
-export default function Settings() {
+export default function Settings({ children }) {
   const { open, setOpen, gear, panel } = usePanel()
   const reduced = useReducedMotion()
   const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || 'light')
@@ -171,6 +171,7 @@ export default function Settings() {
       </button>
       <div ref={panel} id="settings-panel" className="settings-panel" role="group" aria-label="Appearance settings" hidden={!open}>
         <Switch label="Dark mode" pressed={theme === 'dark'} onClick={toggleTheme} />
+        {children}
         <fieldset className="palette-options">
           <legend>Palette</legend>
           {PALETTES.map((p) => (

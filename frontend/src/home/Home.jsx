@@ -26,16 +26,6 @@ function ProjectItem({ project, className }) {
     <li className={className}>
       <h3>{project.name}</h3>
       <p>{project.oneLiner}</p>
-      {project.image && (
-        <img
-          className="shot"
-          src={`${BASE}${project.image}`}
-          alt={project.imageAlt ?? `Placeholder for a ${project.name} screenshot, coming soon`}
-          width="640"
-          height="360"
-          loading="lazy"
-        />
-      )}
       <LinkButtons project={project} />
     </li>
   )
@@ -103,14 +93,14 @@ function Contact() {
   )
 }
 
-export default function Home() {
+export default function Home({ appearanceControls }) {
   return (
     <>
       <a className="skip" href="#main">
         Skip to content
       </a>
       <nav className="view-switch" aria-label="Switch view">
-        <Settings />
+        <Settings>{appearanceControls}</Settings>
         <a className="btn solid" href={`${BASE}play/`}>
           Game version →
         </a>
