@@ -62,7 +62,12 @@ body.study {
 /* Editorial: name is the focal point; project titles and descriptions share a baseline. */
 .study[data-layout='editorial'] main > header { padding: 1rem 0 3.5rem; }
 .study[data-layout='editorial'] h1 { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(4.5rem, 10vw, 9.5rem); line-height: 1; margin: 0 0 1.5rem; }
-.study[data-layout='editorial'] .about { max-width: 45rem; margin-left: auto; padding-bottom: 2rem; }
+.study[data-layout='editorial'] .about { display: grid; grid-template-columns: 10rem minmax(0, 40rem); column-gap: 2.5rem; align-items: start; padding-bottom: 2rem; }
+.study[data-layout='editorial'] .about::after { display: none; }
+.study[data-layout='editorial'] .about h2 { grid-column: 2; grid-row: 1; margin: 0 0 .75rem; }
+.study[data-layout='editorial'] .about { grid-template-rows: auto 1fr; }
+.study[data-layout='editorial'] .about img { grid-column: 1; grid-row: 1 / 3; float: none; margin: 0; width: 10rem; height: 12.5rem; object-fit: cover; object-position: 50% 15%; border-radius: .75rem; }
+.study[data-layout='editorial'] .about p { grid-column: 2; margin-top: 0; }
 .study[data-layout='editorial'] section[aria-labelledby='featured-h'] { padding-top: 2rem; }
 .study[data-layout='editorial'] .card { display: grid; grid-template-columns: 1fr 1.2fr; column-gap: 4rem; }
 .study[data-layout='editorial'] .card h3 { grid-row: 1 / 3; font-size: clamp(2rem, 4vw, 3.25rem); }
@@ -107,6 +112,9 @@ body.study {
   .study[data-layout='work'] section[aria-labelledby='featured-h'] > ul { grid-template-columns: 1fr; }
   .study[data-layout='work'] .card { min-height: 17rem; padding: 1.5rem; }
   .study[data-layout='editorial'] h1 { font-size: clamp(3.7rem, 15vw, 5rem); }
+  .study[data-layout='editorial'] .about { grid-template-columns: 6.5rem minmax(0, 1fr); column-gap: 1.25rem; }
+  .study[data-layout='editorial'] .about img { width: 6.5rem; height: 8rem; grid-row: 1 / 2; }
+  .study[data-layout='editorial'] .about p { grid-column: 1 / -1; }
   .study .layout-switcher { justify-content: center; gap: .1rem; padding: .5rem; }
   .layout-switcher > span { display: none; }
   .layout-switcher .layout-description { text-align: center; }
