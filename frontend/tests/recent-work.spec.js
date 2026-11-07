@@ -34,7 +34,7 @@ test('recent work shows the newest 5 merged PRs with titles, skipping other even
   const events = [
     { id: 'x', type: 'PushEvent', created_at: hoursAgo(0), repo: { name: 'thomas-tahk/knowflow' }, payload: {} },
     mergedEvent(50, 'not-in-feed'),
-    ...[1, 2, 3, 4, 5, 6, 7].map((i) => mergedEvent(i, i === 2 ? 'Dormant' : 'knowflow')),
+    ...[1, 2, 3, 4, 5, 6, 7].map((i) => mergedEvent(i, i === 2 ? 'broodwar-archive' : 'knowflow')),
   ]
   await mockFeed(page, events)
   await page.goto(sitePath('/'))
@@ -47,7 +47,7 @@ test('recent work shows the newest 5 merged PRs with titles, skipping other even
   await expect(page.getByText('Merged change 50')).toHaveCount(0)
   await expect(items.nth(0)).toContainText('knowflow')
   await expect(items.nth(0)).toContainText('1 hour ago')
-  await expect(items.nth(1)).toContainText('Dormant')
+  await expect(items.nth(1)).toContainText('broodwar-archive')
 })
 
 test('recent work passes the standard checks with a feed showing', async ({ page }) => {
