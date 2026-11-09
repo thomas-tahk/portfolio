@@ -26,16 +26,6 @@ function ProjectItem({ project, className }) {
     <li className={className}>
       <h3>{project.name}</h3>
       <p>{project.oneLiner}</p>
-      {project.image && (
-        <img
-          className="shot"
-          src={`${BASE}${project.image}`}
-          alt={project.imageAlt ?? `Placeholder for a ${project.name} screenshot, coming soon`}
-          width="640"
-          height="360"
-          loading="lazy"
-        />
-      )}
       <LinkButtons project={project} />
     </li>
   )
@@ -161,6 +151,11 @@ export default function Home() {
           </a>
         </p>
       </main>
+      <footer className="photo-credit">
+        설악산 photograph by{' '}
+        <a href="https://commons.wikimedia.org/wiki/File:Seoraksan_National_Park_(187188929).jpeg">Eirien</a>,{' '}
+        <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>. Faded and cropped.
+      </footer>
     </>
   )
 }
