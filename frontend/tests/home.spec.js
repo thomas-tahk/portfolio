@@ -48,16 +48,19 @@ test('front page lists visible projects, no hidden ones, and links to the game',
   await expect(page).toHaveURL(new RegExp(sitePath('/play/') + '$'))
 })
 
-test('projects with an image show it, and it loads', async ({ page }) => {
+test('project lists show text and links without screenshots', async ({ page }) => {
   await page.goto(sitePath('/'))
-  const withImage = content.projects.filter((p) => !p.hidden && p.image)
-  expect(withImage.length).toBeGreaterThan(0)
-  for (const p of withImage) {
-    const img = page.getByRole('img', { name: new RegExp(p.name) })
-    await img.scrollIntoViewIfNeeded()
-    await expect(img).toBeVisible()
-    expect(await img.evaluate((el) => el.complete && el.naturalWidth > 0), `${p.slug} image loaded`).toBe(true)
+  await expect(page.locator('#featured-h')).toBeVisible()
+  await expect(page.locator('.card img, .more-item img')).toHaveCount(0)
+  for (const project of content.projects.filter((p) => !p.hidden)) {
+    await expect(page.getByRole('heading', { name: project.name, exact: true })).toBeVisible()
   }
+})
+
+test('Seoraksan photo credit is shown', async ({ page }) => {
+  await page.goto(sitePath('/'))
+  await expect(page.getByRole('link', { name: 'Eirien' })).toBeVisible()
+  await expect(page.getByText('설악산')).toBeVisible()
 })
 
 test('copy email button copies the address', async ({ page, context }) => {
